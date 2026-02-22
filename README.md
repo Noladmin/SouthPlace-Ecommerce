@@ -6,6 +6,7 @@ A modern, full-stack restaurant management system built with Next.js, featuring 
 
 ### Customer Features
 - **Online Menu**: Browse and order authentic African dishes
+- **Specialized Services**: Access specialized services like Facilities Management, House Keeping, Industrial Catering, Laundry Services, and Office Catering
 - **User Authentication**: Secure sign-up/login with email verification
 - **Shopping Cart**: Add items, manage quantities, and checkout
 - **Order Tracking**: Real-time order status updates
@@ -15,9 +16,10 @@ A modern, full-stack restaurant management system built with Next.js, featuring 
 ### Admin Features
 - **Dashboard**: Analytics, order management, and customer insights
 - **Menu Management**: Add, edit, and organize menu items and categories
+- **Extras Management**: Manage customizable order extras and groups
 - **Order Management**: Process orders, update status, and manage deliveries
 - **Customer Management**: View customer data and order history
-- **Email Notifications**: Automated emails for orders and account creation
+- **System Settings**: Configure VAT, email, and business information
 - **Analytics**: Sales reports and business insights
 
 ### Technical Features
@@ -49,8 +51,8 @@ A modern, full-stack restaurant management system built with Next.js, featuring 
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
-   cd tastybowels
+   git clone https://github.com/Noladmin/SouthPlace-Ecommerce.git
+   cd southplace-ecommerce
    ```
 
 2. **Install dependencies**
