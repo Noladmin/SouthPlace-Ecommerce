@@ -1,33 +1,33 @@
-# TastyBowls - African Cuisine Restaurant
+# SouthPlace Ecommerce - Premium Cuisine & Services
 
-A modern, full-stack restaurant management system built with Next.js, featuring online ordering, admin panel, and customer management.
+A modern, full-stack ecommerce and management system built with Next.js, featuring online ordering, specialized services, automated VAT calculations, and a comprehensive admin panel.
 
 ## 🚀 Features
 
 ### Customer Features
-- **Online Menu**: Browse and order authentic African dishes
-- **Specialized Services**: Access specialized services like Facilities Management, House Keeping, Industrial Catering, Laundry Services, and Office Catering
-- **User Authentication**: Secure sign-up/login with email verification
-- **Shopping Cart**: Add items, manage quantities, and checkout
-- **Order Tracking**: Real-time order status updates
-- **Order History**: View past orders and receipts
-- **Responsive Design**: Mobile-first design for all devices
+- **Online Menu**: Browse and order authentic cuisine and gourmet dishes.
+- **Specialized Services**: Access specialized services like Facilities Management, House Keeping, Industrial Catering, Laundry Services, and Office Catering.
+- **User Authentication**: Secure sign-up/login with email verification.
+- **Shopping Cart**: Add items, manage quantities, and checkout with automated VAT calculation.
+- **Order Tracking**: Real-time order status updates.
+- **Order History**: View past orders and receipts.
+- **Responsive Design**: Mobile-first design for all devices.
 
 ### Admin Features
-- **Dashboard**: Analytics, order management, and customer insights
-- **Menu Management**: Add, edit, and organize menu items and categories
-- **Extras Management**: Manage customizable order extras and groups
-- **Order Management**: Process orders, update status, and manage deliveries
-- **Customer Management**: View customer data and order history
-- **System Settings**: Configure VAT, email, and business information
-- **Analytics**: Sales reports and business insights
+- **Dashboard**: Real-time analytics, order management, and customer insights.
+- **Menu Management**: Add, edit, and organize menu items and categories.
+- **Extras Management**: Manage customizable order extras and groups (e.g., side dishes, add-ons).
+- **Order Management**: Process orders, update status, and manage deliveries.
+- **Customer Management**: View customer data and order history.
+- **System Settings**: Configure VAT rates, email notifications, and business information.
+- **Analytics**: Sales reports and business performance insights.
 
 ### Technical Features
-- **Stripe Integration**: Secure payment processing
-- **Email System**: Automated notifications using Nodemailer
-- **JWT Authentication**: Secure admin and customer authentication
-- **Database**: PostgreSQL with Prisma ORM
-- **Responsive UI**: Tailwind CSS with shadcn/ui components
+- **Stripe Integration**: Secure payment processing.
+- **Email System**: Automated notifications using Nodemailer.
+- **JWT Authentication**: Secure admin and customer authentication.
+- **Database**: PostgreSQL with Prisma ORM.
+- **Responsive UI**: Tailwind CSS with shadcn/ui components.
 
 ## 🛠️ Tech Stack
 
@@ -64,7 +64,7 @@ A modern, full-stack restaurant management system built with Next.js, featuring 
    Create a `.env.local` file in the root directory:
    ```env
    # Database Configuration
-   DATABASE_URL="postgresql://username:password@localhost:5432/tastybowls"
+   DATABASE_URL="postgresql://username:password@localhost:5432/southplace"
 
    # JWT Secret (generate a strong random string)
    JWT_SECRET="your-super-secret-jwt-key-here"
@@ -75,7 +75,7 @@ A modern, full-stack restaurant management system built with Next.js, featuring 
    EMAIL_USER="your-email@domain.com"
    EMAIL_PASS="your-email-password"
    EMAIL_FROM="your-email@domain.com"
-   BUSINESS_EMAIL="your-business-email@domain.com"
+   BUSINESS_EMAIL="info@southplace-ecommerce.com"
 
    # Stripe Configuration
    STRIPE_PUBLISHABLE_KEY="pk_test_your_stripe_publishable_key"
@@ -83,19 +83,19 @@ A modern, full-stack restaurant management system built with Next.js, featuring 
    STRIPE_WEBHOOK_SECRET="whsec_your_webhook_secret"
 
    # Admin Configuration
-   ADMIN_EMAIL="admin@yourdomain.com"
+   ADMIN_EMAIL="admin@southplace-ecommerce.com"
    ADMIN_PASSWORD="your-admin-password"
-   ORDERS_NOTIFY_EMAIL="admin@yourdomain.com"
+   ORDERS_NOTIFY_EMAIL="admin@southplace-ecommerce.com"
 
    # Twilio SMS Configuration (optional)
    TWILIO_ACCOUNT_SID="your-twilio-account-sid"
    TWILIO_AUTH_TOKEN="your-twilio-auth-token"
-   TWILIO_PHONE_NUMBER="+1234567890"
-   ADMIN_PHONE="+1234567890"
-   # Alternative: ORDERS_NOTIFY_PHONE="+1234567890"
+   TWILIO_PHONE_NUMBER="+234..."
+   ADMIN_PHONE="+234..."
+   # Alternative: ORDERS_NOTIFY_PHONE="+234..."
 
    # WhatsApp Configuration (optional)
-   WHATSAPP_NUMBER="+1234567890"
+   WHATSAPP_NUMBER="+234..."
    ```
 
 4. **Set up the database**
@@ -147,7 +147,7 @@ A modern, full-stack restaurant management system built with Next.js, featuring 
 ## 📁 Project Structure
 
 ```
-tastybowels/
+southplace-ecommerce/
 ├── app/                    # Next.js app directory
 │   ├── admin/             # Admin panel pages
 │   ├── api/               # API routes
@@ -161,7 +161,7 @@ tastybowels/
 │   └── ...               # Utilities
 ├── prisma/               # Database schema and migrations
 ├── public/               # Static assets
-└── scripts/              # Database scripts
+├── scripts/              # Database scripts
 ```
 
 ## 🚀 Deployment
@@ -241,12 +241,12 @@ This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-For support, email support@tastybowls.com or create an issue in the repository.
+For support, email info@southplace-ecommerce.com or create an issue in the repository.
 
 ## 🔒 Security Reporting
 
-If you discover a security vulnerability, please email security@tastybowls.com instead of creating a public issue.
+If you discover a security vulnerability, please email security@southplace-ecommerce.com instead of creating a public issue.
 
 ---
 
-**Note**: This is a production-ready application. Ensure all security measures are properly configured before deployment. 
+**Note**: This is a production-ready application. Ensure all security measures are properly configured before deployment.
