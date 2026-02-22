@@ -6,6 +6,7 @@ import { verifyAdminAuth } from "@/lib/services/auth-service"
 const extraItemSchema = z.object({
   name: z.string().min(1),
   price: z.number().min(0),
+  imageUrl: z.string().trim().optional(),
   isActive: z.boolean().optional(),
 })
 
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
               create: validated.items.map((item) => ({
                 name: item.name,
                 price: item.price,
+                imageUrl: item.imageUrl?.trim() || null,
                 isActive: item.isActive ?? true,
               })),
             }

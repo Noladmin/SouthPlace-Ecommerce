@@ -13,7 +13,7 @@ import AddToCartModal from "@/components/add-to-cart-modal"
 // Define types for menu items from API
 type MeasurementType = 'litres' | 'plates' | 'packs' | 'pcs'
 interface MenuVariant { name: string; price: string; numericPrice: number; measurement?: string; measurementType?: MeasurementType }
-interface MenuItem { id: string; name: string; description: string; price: string; basePrice: number; image: string; tags: string[]; dietary?: string[]; allergens?: string[]; cookingMethod?: string[]; mealType?: string[]; nutritionalHighlights?: string[]; variants?: MenuVariant[]; serving?: string; serves?: string; measurement?: string; measurementType?: MeasurementType; specialOffer?: string; rating?: number; prepTime?: string; difficulty?: 'Easy' | 'Medium' | 'Hard'; spiceLevel?: 1 | 2 | 3 | 4 | 5; origin?: string; isFeatured?: boolean; extraGroups?: Array<{ id: string; name: string; description?: string; isGlobal?: boolean; minSelections?: number; maxSelections?: number; items: Array<{ id: string; name: string; price: number }> }> }
+interface MenuItem { id: string; name: string; description: string; price: string; basePrice: number; image: string; tags: string[]; dietary?: string[]; allergens?: string[]; cookingMethod?: string[]; mealType?: string[]; nutritionalHighlights?: string[]; variants?: MenuVariant[]; serving?: string; serves?: string; measurement?: string; measurementType?: MeasurementType; specialOffer?: string; rating?: number; prepTime?: string; difficulty?: 'Easy' | 'Medium' | 'Hard'; spiceLevel?: 1 | 2 | 3 | 4 | 5; origin?: string; isFeatured?: boolean; extraGroups?: Array<{ id: string; name: string; description?: string; isGlobal?: boolean; minSelections?: number; maxSelections?: number; items: Array<{ id: string; name: string; price: number; imageUrl?: string }> }> }
 
 // Skeleton Loading Component
 function FeaturedDishesSkeleton() {
@@ -458,14 +458,26 @@ function FeaturedDishesContent() {
                         {group.items.map((extra) => {
                           const selected = (selectedExtras[group.id] || []).includes(extra.id)
                           return (
-                            <label key={extra.id} className="flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2">
-                              <div className="flex items-center gap-3">
+                            <label key={extra.id} className={cn(
+                              "flex items-center justify-between gap-3 rounded-md border px-3 py-2",
+                              selected ? "border-orange-200 bg-orange-50/60" : "border-gray-100"
+                            )}>
+                              <div className="flex items-center gap-3 min-w-0">
                                 <input
                                   type="checkbox"
                                   checked={selected}
                                   onChange={() => toggleExtraSelection(group.id, extra.id, group.maxSelections)}
                                 />
-                                <span className="text-sm text-gray-800">{extra.name}</span>
+                                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-100">
+                                  <Image
+                                    src={extra.imageUrl || "/placeholder.jpg"}
+                                    alt={extra.name}
+                                    fill
+                                    sizes="40px"
+                                    className="object-cover"
+                                  />
+                                </div>
+                                <span className="truncate text-sm text-gray-800">{extra.name}</span>
                               </div>
                               <span className="text-sm font-medium text-gray-700">₦{extra.price.toFixed(2)}</span>
                             </label>

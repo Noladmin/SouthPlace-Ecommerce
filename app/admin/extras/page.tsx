@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import AdminLayout from "@/components/admin-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,11 +27,12 @@ import {
 import ConfirmationDialog from "@/components/admin/confirmation-dialog"
 import SuccessModal from "@/components/admin/success-modal"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Plus, Trash2, Edit } from "lucide-react"
+import { Loader2, Plus, Trash2, Edit, Upload } from "lucide-react"
 
 interface ExtraItemForm {
   name: string
   price: string
+  imageUrl: string
   isActive: boolean
 }
 
@@ -52,7 +54,7 @@ interface ExtraGroup {
   minSelections: number
   maxSelections: number
   isActive: boolean
-  items: Array<{ id: string; name: string; price: number; isActive: boolean }>
+  items: Array<{ id: string; name: string; price: number; imageUrl?: string | null; isActive: boolean }>
 }
 
 const emptyForm: ExtraGroupForm = {
@@ -77,6 +79,7 @@ export default function AdminExtrasPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [formData, setFormData] = useState<ExtraGroupForm>(emptyForm)
+  const [uploadingItemIndex, setUploadingItemIndex] = useState<number | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -119,6 +122,7 @@ export default function AdminExtrasPage() {
       items: (group.items || []).map((item) => ({
         name: item.name,
         price: Number(item.price).toFixed(2),
+        imageUrl: item.imageUrl || "",
         isActive: item.isActive,
       })),
     })
@@ -138,7 +142,7 @@ export default function AdminExtrasPage() {
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", price: "", isActive: true }],
+      items: [...prev.items, { name: "", price: "", imageUrl: "", isActive: true }],
     }))
   }
 
@@ -147,6 +151,38 @@ export default function AdminExtrasPage() {
       ...prev,
       items: prev.items.filter((_, i) => i !== index),
     }))
+  }
+
+  const handleItemImageUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+
+    setUploadingItemIndex(index)
+    try {
+      const form = new FormData()
+      form.append("file", file)
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: form,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.error || "Upload failed")
+      }
+
+      const imageUrl = data.url || data.path || ""
+      if (!imageUrl) throw new Error("Upload failed")
+
+      handleItemChange(index, "imageUrl", imageUrl)
+      toast({ title: "Uploaded", description: "Extra image uploaded successfully." })
+    } catch (error: any) {
+      console.error("Extra image upload error:", error)
+      toast({ title: "Upload Failed", description: error?.message || "Could not upload image", variant: "destructive" })
+    } finally {
+      setUploadingItemIndex(null)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,6 +215,7 @@ export default function AdminExtrasPage() {
         .map((item) => ({
           name: item.name.trim(),
           price: parseFloat(item.price),
+          imageUrl: item.imageUrl.trim() || undefined,
           isActive: item.isActive,
         })),
     }
@@ -379,7 +416,7 @@ export default function AdminExtrasPage() {
                   <p className="text-sm text-gray-500">No items yet. Add at least one extra.</p>
                 )}
                 {formData.items.map((item, index) => (
-                  <div key={`${item.name}-${index}`} className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr_auto] gap-3 items-center">
+                  <div key={`${item.name}-${index}`} className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr_2fr_auto] gap-3 items-center">
                     <Input
                       placeholder="Item name"
                       value={item.name}
@@ -392,6 +429,44 @@ export default function AdminExtrasPage() {
                       value={item.price}
                       onChange={(e) => handleItemChange(index, "price", e.target.value)}
                     />
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="Image URL (optional)"
+                        value={item.imageUrl}
+                        onChange={(e) => handleItemChange(index, "imageUrl", e.target.value)}
+                      />
+                      <input
+                        id={`extra-upload-${index}`}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleItemImageUpload(index, e)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById(`extra-upload-${index}`)?.click()}
+                        disabled={uploadingItemIndex === index}
+                        className="shrink-0"
+                      >
+                        {uploadingItemIndex === index ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </Button>
+                      {item.imageUrl && (
+                        <div className="relative h-10 w-10 overflow-hidden rounded-md border border-gray-200 bg-gray-100">
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.name || "Extra image"}
+                            fill
+                            sizes="40px"
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={item.isActive}

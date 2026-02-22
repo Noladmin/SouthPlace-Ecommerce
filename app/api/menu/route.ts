@@ -166,6 +166,7 @@ export async function GET(request: NextRequest) {
                 id: it.id,
                 name: it.name,
                 price: parseFloat(it.price.toString()),
+                imageUrl: it.imageUrl || undefined,
               }))
             }))
           })()
