@@ -60,18 +60,18 @@ const nextConfig = {
     })()
     const csp = [
       "default-src 'self'",
-      // Allow Stripe JS
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://static.cloudflareinsights.com",
+      // Allow Stripe and Paystack JS
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://js.paystack.co https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline'",
-      // Images including Stripe beacons
-      `img-src 'self' data: https://images.unsplash.com https://randomuser.me https://i.pinimg.com https://images.pexels.com https://res.cloudinary.com https://m.stripe.network https://r.stripe.com${supabaseHost ? ' https://' + supabaseHost : ''}`,
+      // Images including Stripe/Paystack assets
+      `img-src 'self' data: https://images.unsplash.com https://randomuser.me https://i.pinimg.com https://images.pexels.com https://res.cloudinary.com https://m.stripe.network https://r.stripe.com https://*.paystack.co${supabaseHost ? ' https://' + supabaseHost : ''}`,
       // Audio/Video
       "media-src 'self' data:",
-      // Network calls to Stripe
-      "connect-src 'self' https://api.stripe.com https://m.stripe.network https://r.stripe.com",
+      // Network calls to Stripe and Paystack
+      "connect-src 'self' https://api.stripe.com https://m.stripe.network https://r.stripe.com https://api.paystack.co https://js.paystack.co https://*.paystack.co",
       "font-src 'self' data:",
-      // Allow Stripe iframes
-      "frame-src https://js.stripe.com https://hooks.stripe.com",
+      // Allow Stripe and Paystack iframes/popups
+      "frame-src https://js.stripe.com https://hooks.stripe.com https://js.paystack.co https://*.paystack.co",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

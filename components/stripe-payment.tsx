@@ -12,7 +12,7 @@ interface StripePaymentProps {
 }
 
 export default function StripePayment(props: StripePaymentProps) {
-  const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
+  const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || ""
   const stripePromise = useMemo(() => (pk ? loadStripe(pk) : null), [pk])
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [initError, setInitError] = useState<string | null>(null)
@@ -27,7 +27,7 @@ export default function StripePayment(props: StripePaymentProps) {
         const res = await fetch("/api/payment/create-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: props.amount, currency: "gbp", metadata: { orderId: props.orderId || "temp" } }),
+          body: JSON.stringify({ amount: props.amount, currency: "ngn", metadata: { orderId: props.orderId || "temp" } }),
         })
         const data = await res.json()
         if (!res.ok || !data.success) throw new Error(data.error || "Failed to create payment intent")

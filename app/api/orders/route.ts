@@ -13,7 +13,7 @@ const orderSubmissionSchema = z.object({
   deliveryCity: z.string().min(2, "City is required"),
   specialInstructions: z.string().optional(),
   deliveryMethod: z.enum(["standard", "express", "STANDARD", "EXPRESS"]).transform(val => val.toLowerCase()),
-  paymentMethod: z.enum(["cash", "card", "online", "stripe", "CASH", "CARD", "ONLINE", "STRIPE"]).transform(val => val.toLowerCase()),
+  paymentMethod: z.enum(["cash", "card", "online", "stripe", "paystack", "CASH", "CARD", "ONLINE", "STRIPE", "PAYSTACK"]).transform(val => val.toLowerCase()),
   items: z.array(z.object({
     id: z.union([z.string(), z.number()]).transform(val => String(val)),
     name: z.string(),

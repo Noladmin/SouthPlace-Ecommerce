@@ -2,18 +2,19 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { motion } from "@/lib/motion"
-import { ArrowLeft, CreditCard, MapPin, Truck, ChevronRight, Info, Utensils, Droplets, Package, Hash, Ruler, User, Lock, Mail, Phone, Eye, EyeOff, Shield, Lock as LockIcon, CheckCircle2, Loader2 } from "lucide-react"
+import { ArrowLeft, CreditCard, MapPin, Truck, ChevronRight, Info, Utensils, Droplets, Package, Hash, Ruler, User, Lock, Mail, Phone, Eye, EyeOff, Shield, Lock as LockIcon, CheckCircle2, Loader2, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { cn, getMeasurementIcon } from "@/lib/utils"
 import { getCart, type CartItem, clearCart, triggerCartUpdate } from "@/lib/cart-utils"
 import StripePayment from "@/components/stripe-payment"
+import PaystackPayment from "@/components/paystack-payment"
 
 // Helper function to render measurement icon
 const renderMeasurementIcon = (measurementType?: string) => {
@@ -288,6 +289,8 @@ export default function CheckoutPage() {
   const [orderId, setOrderId] = useState<string | null>(null)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+  const [selectedPaymentProvider, setSelectedPaymentProvider] = useState<"stripe" | "paystack">("stripe")
+  const [isVerifyingRedirectPayment, setIsVerifyingRedirectPayment] = useState(false)
   const [saveAddress, setSaveAddress] = useState(true)
   
   // Form data
@@ -390,6 +393,7 @@ export default function CheckoutPage() {
       router.push("/order")
     }
   }, [router, searchParams])
+
   // (removed) previously logged paymentInfo changes
 
   // Check if user is authenticated
@@ -427,6 +431,15 @@ export default function CheckoutPage() {
   const deliveryFee = deliveryInfo.deliveryMethod === "express" ? deliveryFees.express : deliveryFees.standard
   const vatAmount = vatSettings.enabled ? subtotal * (vatSettings.rate / 100) : 0
   const total = subtotal + deliveryFee + vatAmount
+  const stripeMinAmountNgn = Number(process.env.NEXT_PUBLIC_STRIPE_MIN_AMOUNT_NGN || "1000")
+  const isStripeAvailableForAmount = total >= stripeMinAmountNgn
+
+  useEffect(() => {
+    if (!isStripeAvailableForAmount && selectedPaymentProvider === "stripe") {
+      setSelectedPaymentProvider("paystack")
+      setOrderData((prev: any) => (prev ? { ...prev, paymentMethod: "paystack" } : prev))
+    }
+  }, [isStripeAvailableForAmount, selectedPaymentProvider])
 
   // Handle form changes
   const handleDeliveryInfoChange = (
@@ -629,6 +642,9 @@ export default function CheckoutPage() {
     }
 
     setPaymentInfo(prev => ({ ...prev, customerName: effectiveCustomerName }))
+    if (!isStripeAvailableForAmount && selectedPaymentProvider === "stripe") {
+      setSelectedPaymentProvider("paystack")
+    }
     setIsProcessing(true)
 
     try {
@@ -658,7 +674,7 @@ export default function CheckoutPage() {
         deliveryCity: deliveryInfo.city,
         specialInstructions: deliveryInfo.specialInstructions,
         deliveryMethod: deliveryInfo.deliveryMethod,
-        paymentMethod: "stripe",
+        paymentMethod: selectedPaymentProvider,
         customerId: user?.id, // Link order to customer if authenticated
         items: cart.map(item => {
           const measurementValue = typeof item.measurement === 'number'
@@ -706,6 +722,16 @@ export default function CheckoutPage() {
         // Store order data for payment processing
         setOrderData(orderData)
         setTempOrderNumber(result.data.tempOrderNumber)
+        try {
+          sessionStorage.setItem(
+            "pendingCheckoutPayment",
+            JSON.stringify({
+              orderData,
+              tempOrderNumber: result.data.tempOrderNumber,
+              savedAt: Date.now(),
+            })
+          )
+        } catch {}
         
         // Order prepared successfully - no toast needed as user will see payment form
 
@@ -730,6 +756,100 @@ export default function CheckoutPage() {
       setIsProcessing(false)
     }
   }
+
+  const handlePaymentCompleted = useCallback(async (paymentReference: string, paymentProvider: "stripe" | "paystack") => {
+    try {
+      const response = await fetch("/api/orders/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          paymentProvider,
+          paymentReference,
+          orderData,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        setPaymentSuccess(true)
+        setPaymentError(null)
+        setOrderId(result.data.orderId)
+
+        const orderDetails = {
+          orderNumber: result.data.orderNumber,
+          total: total,
+          status: "CONFIRMED",
+          items: cart,
+          deliveryInfo: deliveryInfo,
+          paymentInfo: paymentInfo,
+          paymentProvider,
+        }
+        localStorage.setItem("lastOrder", JSON.stringify(orderDetails))
+        try {
+          sessionStorage.removeItem("pendingCheckoutPayment")
+        } catch {}
+
+        try {
+          const current = JSON.parse(localStorage.getItem("tastyBowlsCart") || "[]")
+          if (Array.isArray(current)) {
+            localStorage.removeItem("tastyBowlsCart")
+            window.dispatchEvent(new CustomEvent("cartUpdated"))
+          }
+        } catch {}
+
+        toast({
+          title: "Payment Successful!",
+          description: "Your order has been confirmed and is being prepared.",
+          className: "bg-green-500 text-white",
+        })
+
+        setTimeout(() => {
+          router.push(`/order-confirmation?orderId=${result.data.orderId}`)
+        }, 1500)
+      } else {
+        throw new Error(result.error || "Failed to confirm order")
+      }
+    } catch (error) {
+      console.error("Order confirmation error:", error)
+      setPaymentError("Payment succeeded but order confirmation failed. Please contact support with your payment reference.")
+      setPaymentSuccess(false)
+    }
+  }, [orderData, total, cart, deliveryInfo, paymentInfo, router, toast])
+
+  useEffect(() => {
+    const reference = searchParams.get("reference") || searchParams.get("trxref")
+    if (!reference || paymentSuccess || isVerifyingRedirectPayment) return
+
+    let restoredOrderData = orderData
+    let restoredTempOrderNumber = tempOrderNumber
+
+    if (!restoredOrderData) {
+      try {
+        const raw = sessionStorage.getItem("pendingCheckoutPayment")
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          if (parsed?.orderData) {
+            restoredOrderData = parsed.orderData
+            restoredTempOrderNumber = parsed.tempOrderNumber || null
+            setOrderData(parsed.orderData)
+            setTempOrderNumber(parsed.tempOrderNumber || null)
+            setStep(3)
+          }
+        }
+      } catch {}
+    }
+
+    if (!restoredOrderData || !restoredTempOrderNumber) return
+
+    setSelectedPaymentProvider("paystack")
+    setIsVerifyingRedirectPayment(true)
+    handlePaymentCompleted(reference, "paystack").finally(() => {
+      setIsVerifyingRedirectPayment(false)
+    })
+  }, [searchParams, orderData, tempOrderNumber, paymentSuccess, isVerifyingRedirectPayment, handlePaymentCompleted])
 
   if (cart.length === 0) {
     return (
@@ -1107,94 +1227,106 @@ export default function CheckoutPage() {
                     <h2 className="text-2xl font-bold font-display">Payment & Confirmation</h2>
                   </div>
 
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                    <div className="flex">
-                      <Info className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <h3 className="font-medium text-green-800 mb-2">Secure Online Payment</h3>
-                        <p className="text-sm text-green-700 mb-3">
-                          Complete your payment securely online using any major credit or debit card:
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">Payment Option *</label>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        className={cn(
+                          "rounded-lg border p-4 text-left transition-all",
+                          selectedPaymentProvider === "stripe"
+                            ? "border-primary bg-primary/5"
+                            : "border-gray-200 hover:border-gray-300",
+                          !isStripeAvailableForAmount && "opacity-50 cursor-not-allowed bg-gray-50"
+                        )}
+                        onClick={() => {
+                          if (!isStripeAvailableForAmount) return
+                          setSelectedPaymentProvider("stripe")
+                          setOrderData((prev: any) => (prev ? { ...prev, paymentMethod: "stripe" } : prev))
+                          setPaymentError(null)
+                        }}
+                        disabled={!isStripeAvailableForAmount}
+                      >
+                        <div className="flex items-center gap-2 font-semibold text-gray-900">
+                          <CreditCard className="h-4 w-4" />
+                          Stripe
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {isStripeAvailableForAmount
+                            ? "Pay with debit/credit card."
+                            : `Unavailable below ₦${stripeMinAmountNgn.toFixed(2)}.`}
                         </p>
-                        <ul className="list-disc list-inside text-sm text-green-700 space-y-1">
-                          <li>💳 Visa, Mastercard, American Express</li>
-                          <li>🔒 256-bit SSL encryption</li>
-                          <li>🛡️ PCI DSS compliant</li>
-                          <li>⚡ Instant payment processing</li>
-                        </ul>
-                      </div>
+                      </button>
+                      <button
+                        type="button"
+                        className={cn(
+                          "rounded-lg border p-4 text-left transition-all",
+                          selectedPaymentProvider === "paystack"
+                            ? "border-primary bg-primary/5"
+                            : "border-gray-200 hover:border-gray-300"
+                        )}
+                        onClick={() => {
+                          setSelectedPaymentProvider("paystack")
+                          setOrderData((prev: any) => (prev ? { ...prev, paymentMethod: "paystack" } : prev))
+                          setPaymentError(null)
+                        }}
+                      >
+                        <div className="flex items-center gap-2 font-semibold text-gray-900">
+                          <Wallet className="h-4 w-4" />
+                          Paystack
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">Pay with Paystack-supported methods.</p>
+                      </button>
                     </div>
+                    {!isStripeAvailableForAmount && (
+                      <p className="mt-2 text-xs text-amber-700">
+                        Stripe is unavailable for this total. Paystack is selected automatically for faster checkout.
+                      </p>
+                    )}
                   </div>
 
                   {orderData && tempOrderNumber && !paymentSuccess && !paymentError ? (
-                    <StripePayment
-                      amount={total}
-                      onSuccess={async (paymentIntentId) => {
-                        try {
-                          // Create the actual order after successful payment
-                          const response = await fetch("/api/orders/confirm", {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                              paymentIntentId,
-                              orderData,
-                            }),
-                          })
-
-                          const result = await response.json()
-
-                          if (response.ok) {
-                            setPaymentSuccess(true)
+                    selectedPaymentProvider === "stripe" ? (
+                      <StripePayment
+                        amount={total}
+                        onSuccess={(paymentIntentId) => handlePaymentCompleted(paymentIntentId, "stripe")}
+                        onError={(error) => {
+                          const msg = String(error || "")
+                          const normalized = msg.toLowerCase()
+                          if (
+                            normalized.includes("amount_too_small") ||
+                            normalized.includes("too small") ||
+                            normalized.includes("minimum amount")
+                          ) {
+                            setSelectedPaymentProvider("paystack")
+                            setOrderData((prev: any) => (prev ? { ...prev, paymentMethod: "paystack" } : prev))
                             setPaymentError(null)
-                            setOrderId(result.data.orderId)
-                            
-                            // Store order details in localStorage for confirmation page
-                            const orderDetails = {
-                              orderNumber: result.data.orderNumber,
-                              total: total,
-                              status: "CONFIRMED",
-                              items: cart,
-                              deliveryInfo: deliveryInfo,
-                              paymentInfo: paymentInfo
-                            }
-                            localStorage.setItem("lastOrder", JSON.stringify(orderDetails))
-                            
-                            // Clear cart locally and notify
-                            try {
-                              const current = JSON.parse(localStorage.getItem("tastyBowlsCart") || "[]")
-                              if (Array.isArray(current)) {
-                                localStorage.removeItem("tastyBowlsCart")
-                                window.dispatchEvent(new CustomEvent('cartUpdated'))
-                              }
-                            } catch {}
-                            
-                            // Show success message before redirect
+                            setPaymentSuccess(false)
                             toast({
-                              title: "Payment Successful!",
-                              description: "Your order has been confirmed and is being prepared.",
-                              className: "bg-green-500 text-white",
+                              title: "Stripe unavailable for this amount",
+                              description: "Switched to Paystack. Please continue payment with Paystack.",
+                              variant: "destructive",
                             })
-                            
-                            // Small delay to show the success message before redirect
-                            setTimeout(() => {
-                              router.push(`/order-confirmation?orderId=${result.data.orderId}`)
-                            }, 1500)
-                          } else {
-                            throw new Error(result.error || "Failed to confirm order")
+                            return
                           }
-                        } catch (error) {
-                          console.error("Order confirmation error:", error)
-                          setPaymentError("Payment successful but order confirmation failed. Please contact support.")
+                          setPaymentError(error)
                           setPaymentSuccess(false)
-                        }
-                      }}
-                      onError={(error) => {
-                        setPaymentError(error)
-                        setPaymentSuccess(false)
-                      }}
-                      orderId={tempOrderNumber}
-                    />
+                        }}
+                        orderId={tempOrderNumber}
+                      />
+                    ) : (
+                      <PaystackPayment
+                        amount={total}
+                        email={deliveryInfo.email}
+                        customerName={paymentInfo.customerName || `${deliveryInfo.firstName} ${deliveryInfo.lastName}`.trim()}
+                        onSuccess={(reference) => handlePaymentCompleted(reference, "paystack")}
+                        onError={(error) => {
+                          setPaymentError(error)
+                          setPaymentSuccess(false)
+                        }}
+                        orderId={tempOrderNumber}
+                      />
+                    )
                   ) : paymentError ? (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
                       <div className="flex">

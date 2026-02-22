@@ -637,7 +637,7 @@ function MenuContent() {
                           <div className="mt-4 pt-4 border-t border-orange-100/70 grid gap-2">
                             <button
                               onClick={() => viewDetails(item)}
-                              className="inline-flex w-full items-center justify-center rounded-xl border border-orange-200 bg-white px-4 py-2 text-sm font-semibold text-orange-700 hover:bg-orange-50 transition-colors"
+                              className="inline-flex w-full items-center justify-center rounded-xl border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
                             >
                               View Details
                             </button>
@@ -810,7 +810,7 @@ function MenuContent() {
                 <div className="flex gap-4">
                   <Button 
                     onClick={() => handleAddToCart(selectedItem, selectedVariant || undefined)}
-                    className="flex-1 rounded-full py-6 text-lg font-semibold"
+                    className="flex-1 rounded-full border border-gray-900 bg-gray-900 py-6 text-lg font-semibold text-white hover:bg-gray-800"
                   >
                     <ShoppingBag className="mr-2 h-5 w-5" />
                     Add to Cart {selectedVariant && `- ${selectedVariant.name}`}

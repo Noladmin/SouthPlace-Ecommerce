@@ -13,7 +13,7 @@ const orderPreparationSchema = z.object({
   deliveryCity: z.string().min(1, "Delivery city is required"),
   specialInstructions: z.string().optional(),
   deliveryMethod: z.enum(["standard", "express"]).transform(v => v.toUpperCase()),
-  paymentMethod: z.enum(["stripe"]).transform(v => v.toLowerCase()),
+  paymentMethod: z.enum(["stripe", "paystack"]).transform(v => v.toLowerCase()),
   customerId: z.string().optional(),
   items: z.array(z.object({
     id: z.string(),
