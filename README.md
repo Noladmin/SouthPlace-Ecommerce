@@ -1,6 +1,6 @@
-# SouthPlace Ecommerce - Premium Cuisine & Services
+# SouthPlace Catering - Premium Cuisine & Services
 
-A modern, full-stack ecommerce and management system built with Next.js, featuring online ordering, specialized services, automated VAT calculations, and a comprehensive admin panel.
+A modern, full-stack ecommerce and management system built with Next.js, featuring online ordering, specialized catering services, automated VAT calculations, and a comprehensive admin panel.
 
 ## 🚀 Features
 
@@ -75,7 +75,7 @@ A modern, full-stack ecommerce and management system built with Next.js, featuri
    EMAIL_USER="your-email@domain.com"
    EMAIL_PASS="your-email-password"
    EMAIL_FROM="your-email@domain.com"
-   BUSINESS_EMAIL="info@southplace-ecommerce.com"
+   BUSINESS_EMAIL="info@southplace-catering.com"
 
    # Stripe Configuration
    STRIPE_PUBLISHABLE_KEY="pk_test_your_stripe_publishable_key"
@@ -83,9 +83,9 @@ A modern, full-stack ecommerce and management system built with Next.js, featuri
    STRIPE_WEBHOOK_SECRET="whsec_your_webhook_secret"
 
    # Admin Configuration
-   ADMIN_EMAIL="admin@southplace-ecommerce.com"
+   ADMIN_EMAIL="admin@southplace-catering.com"
    ADMIN_PASSWORD="your-admin-password"
-   ORDERS_NOTIFY_EMAIL="admin@southplace-ecommerce.com"
+   ORDERS_NOTIFY_EMAIL="admin@southplace-catering.com"
 
    # Twilio SMS Configuration (optional)
    TWILIO_ACCOUNT_SID="your-twilio-account-sid"
@@ -241,11 +241,11 @@ This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-For support, email info@southplace-ecommerce.com or create an issue in the repository.
+For support, email info@southplace-catering.com or create an issue in the repository.
 
 ## 🔒 Security Reporting
 
-If you discover a security vulnerability, please email security@southplace-ecommerce.com instead of creating a public issue.
+If you discover a security vulnerability, please email security@southplace-catering.com instead of creating a public issue.
 
 ---
 
