@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Loader2, Plus, Trash2, Edit, Upload } from "lucide-react"
 
 interface ExtraItemForm {
+  clientKey: string
   name: string
   price: string
   imageUrl: string
@@ -82,6 +83,13 @@ export default function AdminExtrasPage() {
   const [uploadingItemIndex, setUploadingItemIndex] = useState<number | null>(null)
   const { toast } = useToast()
 
+  const createClientKey = () => {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID()
+    }
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  }
+
   useEffect(() => {
     fetchGroups()
   }, [])
@@ -120,6 +128,7 @@ export default function AdminExtrasPage() {
       maxSelections: String(group.maxSelections ?? 0),
       isActive: group.isActive,
       items: (group.items || []).map((item) => ({
+        clientKey: createClientKey(),
         name: item.name,
         price: Number(item.price).toFixed(2),
         imageUrl: item.imageUrl || "",
@@ -142,7 +151,7 @@ export default function AdminExtrasPage() {
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", price: "", imageUrl: "", isActive: true }],
+      items: [...prev.items, { clientKey: createClientKey(), name: "", price: "", imageUrl: "", isActive: true }],
     }))
   }
 
@@ -416,7 +425,7 @@ export default function AdminExtrasPage() {
                   <p className="text-sm text-gray-500">No items yet. Add at least one extra.</p>
                 )}
                 {formData.items.map((item, index) => (
-                  <div key={`${item.name}-${index}`} className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr_2fr_auto] gap-3 items-center">
+                  <div key={item.clientKey} className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr_2fr_auto] gap-3 items-center">
                     <Input
                       placeholder="Item name"
                       value={item.name}

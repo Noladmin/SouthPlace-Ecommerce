@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "@/lib/motion"
 import { ChevronRight, ChevronLeft, Star, Clock, Users, Heart, ShoppingCart, Eye, Utensils, Droplets, Package, Hash, Ruler, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { addToCart, getMeasurementIcon } from "@/lib/cart-utils"
 import AddToCartModal from "@/components/add-to-cart-modal"
@@ -113,6 +114,7 @@ const getTagIcon = () => {
 
 // Main Featured Dishes Component
 function FeaturedDishesContent() {
+  const { toast } = useToast()
   const [favorites, setFavorites] = useState<string[]>([])
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null)
   const [selectedVariant, setSelectedVariant] = useState<MenuVariant | null>(null)
@@ -181,11 +183,19 @@ function FeaturedDishesContent() {
       const min = group.minSelections || 0
       const max = group.maxSelections || 0
       if (selectedIds.length < min) {
-        alert(`Please select at least ${min} option(s) for ${group.name}.`)
+        toast({
+          title: "Selection Required",
+          description: `Please select at least ${min} option(s) for ${group.name}.`,
+          variant: "destructive",
+        })
         return
       }
       if (max > 0 && selectedIds.length > max) {
-        alert(`Please select no more than ${max} option(s) for ${group.name}.`)
+        toast({
+          title: "Selection Limit",
+          description: `Please select no more than ${max} option(s) for ${group.name}.`,
+          variant: "destructive",
+        })
         return
       }
     }
@@ -230,7 +240,11 @@ function FeaturedDishesContent() {
         return { ...prev, [groupId]: current.filter((id) => id !== extraId) }
       }
       if (maxSelections && maxSelections > 0 && current.length >= maxSelections) {
-        alert(`You can select up to ${maxSelections} option(s) for this group.`)
+        toast({
+          title: "Selection Limit",
+          description: `You can select up to ${maxSelections} option(s) for this group.`,
+          variant: "destructive",
+        })
         return prev
       }
       return { ...prev, [groupId]: [...current, extraId] }
