@@ -1,0 +1,387 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Admin Management
+model Admin {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String
+  name              String
+  role              Role     @default(ADMIN_USER)
+  isActive          Boolean  @default(true)
+  lastLogin         DateTime?
+  phone             String?
+  twoFactorEnabled  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  sessions      AdminSession[]
+  otpCodes      OTPCode[]
+  loginAttempts LoginAttempt[]
+
+  @@map("admins")
+}
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  adminId   String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  // Relations
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_sessions")
+}
+
+model OTPCode {
+  id        String   @id @default(cuid())
+  adminId   String
+  code      String
+  type      OTPType
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  // Relations
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("otp_codes")
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  adminId   String
+  ipAddress String
+  userAgent String
+  success   Boolean
+  createdAt DateTime @default(now())
+  
+  // Relations
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("login_attempts")
+}
+
+// Menu Management
+model MenuCategory {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  items       MenuItem[]
+
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id                    String   @id @default(cuid())
+  name                  String
+  description           String?
+  basePrice             Decimal  @db.Decimal(10, 2)
+  imageUrl              String?
+  tags                  Json?
+  dietary               Json?
+  allergens             Json?
+  cookingMethod         Json?
+  mealType              Json?
+  nutritionalHighlights Json?
+  variants              Json?
+  serving               String?
+  serves                String?
+  measurement           String?
+  measurementType       String?
+  specialOffer          String?
+  rating                Decimal? @db.Decimal(3, 2)
+  prepTime              String?
+  difficulty            String?
+  spiceLevel            Int?
+  origin                String?
+  isActive              Boolean  @default(true)
+  isFeatured            Boolean  @default(false)
+  categoryId            String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  category              MenuCategory? @relation(fields: [categoryId], references: [id])
+  orderItems            OrderItem[]
+  reviews               Review[]
+  favorites             CustomerFavorite[]
+  extraGroups           MenuItemExtraGroup[]
+
+  @@map("menu_items")
+}
+
+model ExtraGroup {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  isGlobal      Boolean  @default(false)
+  minSelections Int      @default(0)
+  maxSelections Int      @default(0) // 0 = no limit
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items         ExtraItem[]
+  menuItems     MenuItemExtraGroup[]
+
+  @@map("extra_groups")
+}
+
+model ExtraItem {
+  id        String   @id @default(cuid())
+  groupId   String
+  name      String
+  price     Decimal  @db.Decimal(10, 2)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group     ExtraGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  orderItemExtras OrderItemExtra[]
+
+  @@map("extra_items")
+}
+
+model MenuItemExtraGroup {
+  id           String @id @default(cuid())
+  menuItemId   String
+  extraGroupId String
+
+  menuItem     MenuItem  @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  extraGroup   ExtraGroup @relation(fields: [extraGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, extraGroupId])
+  @@map("menu_item_extra_groups")
+}
+
+// Customer Management
+model Customer {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String
+  firstName         String
+  lastName          String
+  phone             String
+  address           String?
+  city              String?
+  isActive          Boolean  @default(true)
+  emailVerified     Boolean  @default(false)
+  lastLogin         DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  orders            Order[]
+  reviews           Review[]
+  favorites         CustomerFavorite[]
+
+  @@map("customers")
+}
+
+// Order Management
+model Order {
+  id                   String      @id @default(cuid())
+  orderNumber          String      @unique
+  customerName         String
+  customerEmail        String?
+  customerPhone        String
+  deliveryAddress      String
+  deliveryCity         String
+  deliveryMethod       String
+  specialInstructions  String?
+  subtotal             Decimal     @db.Decimal(10, 2)
+  deliveryFee          Decimal     @db.Decimal(10, 2)
+  vatRate              Decimal     @default(0) @db.Decimal(5, 2)
+  vatAmount            Decimal     @default(0) @db.Decimal(10, 2)
+  total                Decimal     @db.Decimal(10, 2)
+  paymentMethod        String
+  status               OrderStatus @default(PENDING)
+  whatsappSent         Boolean     @default(false)
+  customerId           String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  // Payment tracking
+  paymentStatus        String?
+  paymentIntentId      String?
+  paidAt               DateTime?
+
+  // Relations
+  customer             Customer?   @relation(fields: [customerId], references: [id])
+  items                OrderItem[]
+  review               Review?
+  payments             Payment[]
+
+  @@map("orders")
+}
+
+// Payment tracking model
+model Payment {
+  id                String        @id @default(cuid())
+  orderId           String
+  paymentIntentId   String        @unique // Stripe payment intent ID
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("gbp")
+  status            PaymentStatus @default(PENDING)
+  paymentMethod     String        // "stripe", "cash", etc.
+  gateway           String        @default("stripe") // Payment gateway used
+  gatewayResponse   Json?         // Raw response from payment gateway
+  refunded          Boolean       @default(false)
+  refundAmount      Decimal?      @db.Decimal(10, 2)
+  refundReason      String?
+  refundedAt        DateTime?
+  processedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  orderId         String
+  menuItemId      String?
+  itemName        String
+  variantName     String?
+  price           Decimal  @db.Decimal(10, 2)
+  quantity        Int
+  measurement     String?
+  measurementType String?
+
+  // Relations
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem        MenuItem? @relation(fields: [menuItemId], references: [id])
+  extras          OrderItemExtra[]
+
+  @@map("order_items")
+}
+
+model OrderItemExtra {
+  id          String   @id @default(cuid())
+  orderItemId String
+  extraItemId String?
+  name        String
+  price       Decimal  @db.Decimal(10, 2)
+  quantity    Int      @default(1)
+
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  extraItem   ExtraItem? @relation(fields: [extraItemId], references: [id])
+
+  @@map("order_item_extras")
+}
+
+// Review System
+model Review {
+  id          String   @id @default(cuid())
+  orderId     String   @unique
+  customerId  String
+  menuItemId  String?
+  rating      Int      // 1-5 stars
+  comment     String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  menuItem    MenuItem? @relation(fields: [menuItemId], references: [id])
+
+  @@map("reviews")
+}
+
+// Customer Favorites
+model CustomerFavorite {
+  id          String   @id @default(cuid())
+  customerId  String
+  menuItemId  String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, menuItemId])
+  @@map("customer_favorites")
+}
+
+// Settings Management
+model BusinessSettings {
+  id                String   @id @default(cuid())
+  businessName      String
+  businessEmail     String
+  businessPhone     String
+  businessAddress   String
+  businessHours     Json
+  deliverySettings  Json
+  whatsappSettings  Json
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("business_settings")
+}
+
+// Simple key/value site settings store
+model SiteSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// Enums
+enum Role {
+  SUPER_ADMIN_USER
+  ADMIN_USER
+  USER
+}
+
+enum OTPType {
+  LOGIN
+  PASSWORD_RESET
+  TWO_FACTOR
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+} 
