@@ -18,6 +18,12 @@ interface AddToCartModalProps {
     price: number
     quantity: number
     variant?: string
+    extras?: Array<{
+      id: string
+      name: string
+      price: number
+      groupName: string
+    }>
   } | null
 }
 
@@ -32,8 +38,17 @@ export default function AddToCartModal({ isOpen, onClose, item }: AddToCartModal
 
   if (!isOpen || !item) return null
 
+  const currentExtrasKey = item.extras?.length
+    ? item.extras.map((ex) => ex.id).sort().join("|")
+    : ""
+
   const cartItem = cart.find(
-    (ci) => ci.id === item.id && (ci.variant || '') === (item.variant || '')
+    (ci) => {
+      const cartExtrasKey = ci.extras?.length
+        ? ci.extras.map((ex) => ex.id).sort().join("|")
+        : ""
+      return ci.id === item.id && (ci.variant || '') === (item.variant || '') && cartExtrasKey === currentExtrasKey
+    }
   )
 
   const currentQuantity = cartItem?.quantity || item.quantity
@@ -43,7 +58,7 @@ export default function AddToCartModal({ isOpen, onClose, item }: AddToCartModal
       onClose()
       return
     }
-    updateCartItemQuantity(item.id, newQuantity, item.variant)
+    updateCartItemQuantity(item.id, newQuantity, item.variant, currentExtrasKey)
     setCart(getCart())
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('cartUpdated'))

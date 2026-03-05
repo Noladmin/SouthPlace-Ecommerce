@@ -129,7 +129,20 @@ function MenuContent() {
   const [selectedExtras, setSelectedExtras] = useState<Record<string, string[]>>({})
   const [showAddedToast, setShowAddedToast] = useState(false)
   const [showAddToCartModal, setShowAddToCartModal] = useState(false)
-  const [addedItem, setAddedItem] = useState<{ id: string; name: string; image: string; price: number; quantity: number; variant?: string } | null>(null)
+  const [addedItem, setAddedItem] = useState<{
+    id: string
+    name: string
+    image: string
+    price: number
+    quantity: number
+    variant?: string
+    extras?: Array<{
+      id: string
+      name: string
+      price: number
+      groupName: string
+    }>
+  } | null>(null)
   
   // New e-commerce filters
   const [sortBy, setSortBy] = useState('popular')
@@ -240,7 +253,8 @@ function MenuContent() {
       image: item.image,
       price: price,
       quantity: 1,
-      variant: selectedVar?.name
+      variant: selectedVar?.name,
+      extras: extrasForCart,
     })
     setShowAddToCartModal(true)
     

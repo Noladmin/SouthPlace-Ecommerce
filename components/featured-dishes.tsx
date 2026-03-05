@@ -120,7 +120,20 @@ function FeaturedDishesContent() {
   const [selectedVariant, setSelectedVariant] = useState<MenuVariant | null>(null)
   const [selectedExtras, setSelectedExtras] = useState<Record<string, string[]>>({})
   const [showAddToCartModal, setShowAddToCartModal] = useState(false)
-  const [addedItem, setAddedItem] = useState<{ id: string; name: string; image: string; price: number; quantity: number; variant?: string } | null>(null)
+  const [addedItem, setAddedItem] = useState<{
+    id: string
+    name: string
+    image: string
+    price: number
+    quantity: number
+    variant?: string
+    extras?: Array<{
+      id: string
+      name: string
+      price: number
+      groupName: string
+    }>
+  } | null>(null)
   const [featuredDishes, setFeaturedDishes] = useState<MenuItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -220,7 +233,8 @@ function FeaturedDishesContent() {
       image: dish.image,
       price: price,
       quantity: 1,
-      variant: selectedVar?.name
+      variant: selectedVar?.name,
+      extras: extrasForCart,
     })
     setShowAddToCartModal(true)
     
