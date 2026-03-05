@@ -373,7 +373,7 @@ function FeaturedDishesContent() {
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto mx-4 border border-gray-100 shadow-xl"
+            className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4 border border-gray-100 shadow-xl"
           >
             <div className="flex justify-between items-start mb-6">
               <h2 className="text-2xl font-bold leading-tight flex-1 mr-4">{selectedDish.name}</h2>

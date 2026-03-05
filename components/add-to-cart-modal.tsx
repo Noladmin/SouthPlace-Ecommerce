@@ -85,7 +85,7 @@ export default function AddToCartModal({ isOpen, onClose, item }: AddToCartModal
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               transition={{ type: "spring", duration: 0.4 }}
-              className="max-w-xl w-full max-h-[90vh] overflow-y-auto pointer-events-auto"
+              className="max-w-2xl w-full max-h-[90vh] overflow-y-auto pointer-events-auto"
             >
             <div className="bg-white rounded-lg shadow-2xl overflow-hidden border border-gray-200">
               {/* Header */}

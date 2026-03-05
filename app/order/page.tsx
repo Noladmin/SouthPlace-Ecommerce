@@ -386,7 +386,7 @@ function OrderContent() {
                                   className="w-full sm:flex-1 rounded-xl px-6 py-5 text-sm font-semibold bg-gray-900 hover:bg-gray-800 text-white shadow-sm group/btn"
                                 >
                                   <Plus className="mr-2 h-5 w-5 group-hover/btn:scale-110 transition-transform" />
-                                  <span>Customize</span>
+                                  <span>Add to Cart</span>
                                 </Button>
                                 <Button
                                   variant="outline"
