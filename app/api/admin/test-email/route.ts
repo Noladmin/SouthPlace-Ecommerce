@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/services/auth-service"
 import { emailService } from "@/lib/services/email-service"
+import { getEmailFromAddress } from "@/lib/services/email-config"
+import { getEmailProviderStatus } from "@/lib/services/email-provider"
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -63,7 +65,8 @@ export async function POST(request: NextRequest) {
               <p><strong>Test Details:</strong></p>
               <ul>
                 <li>Sent at: ${new Date().toLocaleString()}</li>
-                <li>From: ${process.env.SMTP_USER}</li>
+                <li>Provider: Resend</li>
+                <li>From: ${getEmailFromAddress()}</li>
                 <li>To: ${testEmail}</li>
                 <li>Status: Configuration Valid</li>
               </ul>
@@ -76,10 +79,12 @@ export async function POST(request: NextRequest) {
     )
 
     if (testResult.success) {
+      const providerStatus = getEmailProviderStatus()
       return NextResponse.json({
         success: true,
         message: "Test email sent successfully",
-        messageId: testResult.messageId
+        messageId: testResult.messageId,
+        provider: providerStatus.provider,
       })
     } else {
       return NextResponse.json(

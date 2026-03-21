@@ -1,11 +1,5 @@
-import nodemailer from "nodemailer"
-import { getEmailConfig, getEmailFromAddress } from "./email-config"
-
-interface SendEmailResult {
-  success: boolean
-  messageId?: string
-  error?: string
-}
+import { getEmailFromAddress } from "./email-config"
+import { sendEmailViaProvider, testEmailProviderConnection, type EmailSendResult } from "./email-provider"
 
 interface WelcomeEmailPayload {
   name: string
@@ -42,21 +36,6 @@ export interface OrderEmailPayload {
   total: number
   items?: OrderItemEmail[]
   estimatedDelivery?: string
-}
-
-let transporter: nodemailer.Transporter | null = null
-
-function createTransporter(): nodemailer.Transporter | null {
-  if (transporter) return transporter
-
-  const config = getEmailConfig()
-  if (!config) {
-    return null
-  }
-
-  console.log(`[Email Service] Creating email transporter: ${config.host}:${config.port} (secure: ${config.secure})`)
-  transporter = nodemailer.createTransport(config as nodemailer.TransportOptions)
-  return transporter
 }
 
 function formatCurrencyNGN(amount: number): string {
@@ -134,70 +113,14 @@ function renderOrderItems(items?: OrderItemEmail[]): string {
   `
 }
 
-async function sendEmail(to: string, subject: string, html: string): Promise<SendEmailResult> {
-  try {
-    const tx = createTransporter()
-    if (!tx) {
-      return { success: false, error: "Email transporter not configured" }
-    }
-
-    // Verify connection before sending
-    try {
-      await tx.verify()
-    } catch (verifyError: any) {
-      console.error("[Email Service] SMTP connection verification failed:", {
-        code: verifyError?.code,
-        command: verifyError?.command,
-        response: verifyError?.response,
-        responseCode: verifyError?.responseCode,
-        message: verifyError?.message,
-      })
-      // Reset transporter so it can be recreated with fresh config
-      transporter = null
-      return { 
-        success: false, 
-        error: `SMTP connection failed: ${verifyError?.response || verifyError?.message || "Authentication error"}` 
-      }
-    }
-
-    const from = getEmailFromAddress()
-    
-    console.log(`[Email Service] Sending email to: ${to} from: ${from}`)
-    
-    const info = await tx.sendMail({ from, to, subject, html })
-    
-    console.log(`[Email Service] Email sent successfully to: ${to}, messageId: ${info.messageId}`)
-    return { success: true, messageId: info.messageId }
-  } catch (error: any) {
-    console.error("[Email Service] Email send error:", {
-      code: error?.code,
-      command: error?.command,
-      response: error?.response,
-      responseCode: error?.responseCode,
-      message: error?.message,
-      stack: error?.stack,
-    })
-    // Reset transporter on error so it can be recreated
-    transporter = null
-    return { 
-      success: false, 
-      error: error?.response || error?.message || "Failed to send email" 
-    }
-  }
+async function sendEmail(to: string, subject: string, html: string): Promise<EmailSendResult> {
+  console.log(`[Email Service] Sending email to: ${to} from: ${getEmailFromAddress()} via Resend`)
+  return sendEmailViaProvider(to, subject, html)
 }
 
 async function testConnection(): Promise<{ success: boolean; error?: string }> {
-  try {
-    const tx = createTransporter()
-    if (!tx) {
-      return { success: false, error: "SMTP credentials not configured" }
-    }
-    await tx.verify()
-    return { success: true }
-  } catch (error: any) {
-    console.error("Email transport verify error:", error)
-    return { success: false, error: error?.message || "Connection failed" }
-  }
+  const result = await testEmailProviderConnection()
+  return result.success ? { success: true } : { success: false, error: result.error }
 }
 
 function buildWelcomeEmail(payload: WelcomeEmailPayload): { subject: string; html: string } {
@@ -296,32 +219,32 @@ function buildOrderStatusUpdateEmail(order: OrderEmailPayload, status: string): 
   return { subject, html }
 }
 
-async function sendWelcomeEmail(payload: WelcomeEmailPayload): Promise<SendEmailResult> {
+async function sendWelcomeEmail(payload: WelcomeEmailPayload): Promise<EmailSendResult> {
   if (!payload.email) return { success: false, error: "Missing recipient email" }
   const { subject, html } = buildWelcomeEmail(payload)
   return sendEmail(payload.email, subject, html)
 }
 
-async function sendOrderConfirmation(order: OrderEmailPayload): Promise<SendEmailResult> {
+async function sendOrderConfirmation(order: OrderEmailPayload): Promise<EmailSendResult> {
   if (!order.customerEmail) return { success: false, error: "Missing customer email" }
   const { subject, html } = buildOrderConfirmationEmail(order)
   return sendEmail(order.customerEmail, subject, html)
 }
 
-async function sendNewOrderNotification(order: OrderEmailPayload): Promise<SendEmailResult> {
-  const to = process.env.ORDERS_NOTIFY_EMAIL || process.env.ADMIN_EMAIL || process.env.EMAIL_USER || process.env.SMTP_USER
+async function sendNewOrderNotification(order: OrderEmailPayload): Promise<EmailSendResult> {
+  const to = process.env.ORDERS_NOTIFY_EMAIL || process.env.ADMIN_EMAIL || process.env.BUSINESS_EMAIL
   if (!to) return { success: false, error: "No admin recipient configured" }
   const { subject, html } = buildAdminNewOrderEmail(order)
   return sendEmail(to, subject, html)
 }
 
-async function sendOrderDelivered(order: OrderEmailPayload): Promise<SendEmailResult> {
+async function sendOrderDelivered(order: OrderEmailPayload): Promise<EmailSendResult> {
   if (!order.customerEmail) return { success: false, error: "Missing customer email" }
   const { subject, html } = buildOrderDeliveredEmail(order)
   return sendEmail(order.customerEmail, subject, html)
 }
 
-async function sendOrderStatusUpdate(order: OrderEmailPayload, status: string): Promise<SendEmailResult> {
+async function sendOrderStatusUpdate(order: OrderEmailPayload, status: string): Promise<EmailSendResult> {
   if (!order.customerEmail) return { success: false, error: "Missing customer email" }
   const { subject, html } = buildOrderStatusUpdateEmail(order, status)
   return sendEmail(order.customerEmail, subject, html)

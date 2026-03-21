@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Package,
   Eye,
+  MessageSquare,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -68,6 +69,11 @@ const navigationItems = [
     title: "Payments",
     href: "/admin/payments",
     icon: Eye,
+  },
+  {
+    title: "SMS",
+    href: "/admin/sms",
+    icon: MessageSquare,
   },
   {
     title: "Settings",

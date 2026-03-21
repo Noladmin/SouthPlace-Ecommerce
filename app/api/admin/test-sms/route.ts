@@ -25,17 +25,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Test Twilio configuration
+    // Test SMS gateway configuration
     const connectionTest = await smsService.testConnection()
     if (!connectionTest.success) {
       return NextResponse.json(
-        { success: false, error: "Twilio configuration error", details: connectionTest.error },
+        { success: false, error: "SMS gateway configuration error", details: connectionTest.error },
         { status: 500 }
       )
     }
 
     // Send test SMS
-    const testMessage = `🧪 South Place SMS Test\n\n✅ Twilio SMS system is working correctly!\n\nThis is a test SMS sent from the South Place admin system.\n\nTest Details:\n• Sent at: ${new Date().toLocaleString()}\n• From: ${process.env.TWILIO_PHONE_NUMBER || "Not configured"}\n• To: ${testPhone}\n• Status: Configuration Valid\n\nYou can now receive order notifications via SMS.`
+    const fromLabel = process.env.BULKSMS_SENDER_ID || process.env.SMS_SENDER_ID || "Not configured"
+    const testMessage = `South Place SMS Test\nGateway connection successful.\nSent: ${new Date().toLocaleString()}\nFrom: ${fromLabel}\nTo: ${testPhone}\nStatus: OK`
     
     const testResult = await smsService.sendSMS(testPhone, testMessage)
 
@@ -43,7 +44,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: "Test SMS sent successfully",
-        messageSid: testResult.messageSid
+        messageSid: testResult.messageSid,
+        provider: testResult.provider,
       })
     } else {
       return NextResponse.json(
@@ -59,4 +61,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

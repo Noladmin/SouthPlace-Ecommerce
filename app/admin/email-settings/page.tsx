@@ -108,27 +108,27 @@ export default function EmailSettingsPage() {
                   Email Configuration
                 </CardTitle>
                 <CardDescription>
-                  Current email service settings and status
+                  Resend email delivery settings and status
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-gray-600">SMTP Host</Label>
+                    <Label className="text-gray-600">Provider</Label>
                     <p className="font-medium">
-                      {process.env.NEXT_PUBLIC_SMTP_HOST || 'smtp.gmail.com'}
+                      Resend
                     </p>
                   </div>
                   <div>
-                    <Label className="text-gray-600">SMTP Port</Label>
+                    <Label className="text-gray-600">API Endpoint</Label>
                     <p className="font-medium">
-                      {process.env.NEXT_PUBLIC_SMTP_PORT || '587'}
+                      api.resend.com
                     </p>
                   </div>
                   <div>
                     <Label className="text-gray-600">From Email</Label>
                     <p className="font-medium">
-                      {process.env.NEXT_PUBLIC_SMTP_USER || 'Not configured'}
+                      {process.env.NEXT_PUBLIC_EMAIL_FROM || 'Set RESEND_FROM_EMAIL on the server'}
                     </p>
                   </div>
                   <div>
@@ -142,7 +142,7 @@ export default function EmailSettingsPage() {
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-green-600 border-green-600">
                     <CheckCircle className="h-3 w-3 mr-1" />
-                    Email Service Active
+                    Resend Provider Enabled
                   </Badge>
                 </div>
               </CardContent>
@@ -265,23 +265,23 @@ export default function EmailSettingsPage() {
             <CardHeader>
               <CardTitle>Required Environment Variables</CardTitle>
               <CardDescription>
-                Configure these variables in your .env.local file
+                Configure these variables in your server environment
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="bg-gray-50 p-4 rounded-lg font-mono text-sm">
                 <div className="space-y-2">
-                  <div><span className="text-blue-600">SMTP_HOST</span>=smtp.gmail.com</div>
-                  <div><span className="text-blue-600">SMTP_PORT</span>=587</div>
-                  <div><span className="text-blue-600">SMTP_USER</span>=your-email@gmail.com</div>
-                  <div><span className="text-blue-600">SMTP_PASS</span>=your-app-password</div>
+                  <div><span className="text-blue-600">RESEND_API_KEY</span>=re_...</div>
+                  <div><span className="text-blue-600">RESEND_FROM_EMAIL</span>=notifications@yourdomain.com</div>
+                  <div><span className="text-blue-600">RESEND_REPLY_TO_EMAIL</span>=support@yourdomain.com</div>
                   <div><span className="text-blue-600">ADMIN_EMAIL</span>=admin@southplacecatering.com</div>
+                  <div><span className="text-blue-600">ORDERS_NOTIFY_EMAIL</span>=orders@yourdomain.com</div>
                   <div><span className="text-blue-600">NEXT_PUBLIC_APP_URL</span>=http://localhost:3000</div>
+                  <div><span className="text-blue-600">NEXT_PUBLIC_EMAIL_FROM</span>=notifications@yourdomain.com</div>
                 </div>
               </div>
               <p className="text-sm text-gray-600 mt-4">
-                <strong>Note:</strong> For Gmail, you'll need to use an App Password instead of your regular password.
-                Enable 2-factor authentication and generate an App Password in your Google Account settings.
+                <strong>Note:</strong> The sending domain or address must be verified in Resend before delivery will succeed.
               </p>
             </CardContent>
           </Card>

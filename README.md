@@ -24,7 +24,7 @@ A modern, full-stack ecommerce and management system built with Next.js, featuri
 
 ### Technical Features
 - **Stripe Integration**: Secure payment processing.
-- **Email System**: Automated notifications using Nodemailer.
+- **Email System**: Automated notifications using Resend.
 - **JWT Authentication**: Secure admin and customer authentication.
 - **Database**: PostgreSQL with Prisma ORM.
 - **Responsive UI**: Tailwind CSS with shadcn/ui components.
@@ -37,7 +37,7 @@ A modern, full-stack ecommerce and management system built with Next.js, featuri
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: JWT with HTTP-only cookies
 - **Payments**: Stripe
-- **Email**: Nodemailer
+- **Email**: Resend
 - **Deployment**: Vercel (recommended)
 
 ## 📋 Prerequisites
@@ -45,7 +45,7 @@ A modern, full-stack ecommerce and management system built with Next.js, featuri
 - Node.js 18+ 
 - PostgreSQL database
 - Stripe account
-- Email service (SMTP)
+- Resend account with a verified sending domain
 
 ## 🔧 Installation
 
@@ -70,11 +70,10 @@ A modern, full-stack ecommerce and management system built with Next.js, featuri
    JWT_SECRET="your-super-secret-jwt-key-here"
 
    # Email Configuration
-   EMAIL_HOST="your-smtp-host.com"
-   EMAIL_PORT=465
-   EMAIL_USER="your-email@domain.com"
-   EMAIL_PASS="your-email-password"
-   EMAIL_FROM="your-email@domain.com"
+   RESEND_API_KEY="re_your_resend_api_key"
+   RESEND_FROM_EMAIL="notifications@yourdomain.com"
+   RESEND_REPLY_TO_EMAIL="support@yourdomain.com"
+   EMAIL_FROM="notifications@yourdomain.com"
    BUSINESS_EMAIL="info@southplace-catering.com"
 
    # Stripe Configuration
@@ -178,14 +177,14 @@ southplace-ecommerce/
 
 ## 📧 Email Configuration
 
-The system uses Nodemailer for email notifications:
+The system uses Resend for email notifications:
 
 - **Welcome emails** for new customer registrations
 - **Order confirmations** for customers
 - **Order notifications** for admin
 - **OTP verification** for admin login
 
-Configure your SMTP settings in `.env.local` for email functionality.
+Configure your Resend settings in `.env.local` for email functionality.
 
 ## 📱 SMS Configuration
 

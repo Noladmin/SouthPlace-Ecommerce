@@ -1,6 +1,5 @@
-import nodemailer from "nodemailer"
 import type { OTPType } from "@/lib/types"
-import { getEmailConfig, getEmailFromAddress } from "./email-config"
+import { sendEmailViaProvider } from "./email-provider"
 
 export interface OTPResponse {
   success: boolean
@@ -48,24 +47,6 @@ export const generateOTPCode = (length: number = OTP_CONFIG.length): string => {
 }
 
 /**
- * Creates email transporter for sending OTP (lazy initialization)
- */
-let otpTransporter: nodemailer.Transporter | null = null
-
-function createEmailTransporter(): nodemailer.Transporter | null {
-  if (!otpTransporter) {
-    const config = getEmailConfig()
-    if (!config) {
-      return null
-    }
-
-    console.log(`[OTP Service] Creating email transporter: ${config.host}:${config.port} (secure: ${config.secure})`)
-    otpTransporter = nodemailer.createTransport(config as nodemailer.TransportOptions)
-  }
-  return otpTransporter
-}
-
-/**
  * Sends OTP via email only
  */
 export const sendEmailOTP = async (
@@ -74,58 +55,20 @@ export const sendEmailOTP = async (
   type: OTPType
 ): Promise<OTPResponse> => {
   try {
-    const transporter = createEmailTransporter()
-    
-    if (!transporter) {
-      return {
-        success: false,
-        message: "Email transporter not configured for OTP",
-        method: "email",
-      }
-    }
-    
-    // Verify connection before sending
-    try {
-      await transporter.verify()
-    } catch (verifyError: any) {
-      console.error("[OTP Service] SMTP connection verification failed:", {
-        code: verifyError?.code,
-        command: verifyError?.command,
-        response: verifyError?.response,
-        responseCode: verifyError?.responseCode,
-        message: verifyError?.message,
-      })
-      
-      // Reset transporter so it can be recreated with fresh config
-      otpTransporter = null
-      
-      if (verifyError?.responseCode === 535 || verifyError?.code === 'EAUTH') {
-        return {
-          success: false,
-          message: "SMTP authentication failed: Invalid email username or password. Please check EMAIL_USER and EMAIL_PASS in your .env file.",
-          method: "email",
-        }
-      }
-      
-      return {
-        success: false,
-        message: verifyError?.response || verifyError?.message || "SMTP connection failed",
-        method: "email",
-      }
-    }
-    
     const subject = getOTPEmailSubject(type)
     const htmlContent = generateOTPEmailTemplate(otp, type)
-    const from = getEmailFromAddress()
-    
-    console.log(`[OTP Service] Sending OTP email to: ${email} from: ${from}`)
-    
-    await transporter.sendMail({
-      from,
-      to: email,
-      subject,
-      html: htmlContent,
-    })
+
+    console.log(`[OTP Service] Sending OTP email to: ${email} via Resend`)
+
+    const result = await sendEmailViaProvider(email, subject, htmlContent)
+
+    if (!result.success) {
+      return {
+        success: false,
+        message: result.error || "Failed to send email OTP",
+        method: "email",
+      }
+    }
 
     console.log(`[OTP Service] OTP email sent successfully to: ${email}`)
     return {
@@ -135,15 +78,9 @@ export const sendEmailOTP = async (
     }
   } catch (error: any) {
     console.error("[OTP Service] Email OTP error:", {
-      code: error?.code,
-      command: error?.command,
-      response: error?.response,
-      responseCode: error?.responseCode,
       message: error?.message,
       stack: error?.stack,
     })
-    // Reset transporter on error so it can be recreated
-    otpTransporter = null
     return {
       success: false,
       message: error?.response || error?.message || "Failed to send email OTP",
