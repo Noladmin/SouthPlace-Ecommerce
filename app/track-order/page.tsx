@@ -35,6 +35,21 @@ interface OrderDetails {
   total: number | string
   createdAt: string
   updatedAt: string
+  confirmedAt?: string | null
+  preparingAt?: string | null
+  waitingForPickupAt?: string | null
+  pickedUpAt?: string | null
+  outForDeliveryAt?: string | null
+  deliveredAt?: string | null
+  deliveryFailedAt?: string | null
+  cancelledAt?: string | null
+  activeDeliveryAssignment?: {
+    assignmentType: string
+    riderName?: string | null
+    providerName?: string | null
+    riderPhone?: string | null
+    status: string
+  } | null
   items: OrderItem[]
 }
 
@@ -42,12 +57,13 @@ const statusSteps = [
   { key: "PENDING", label: "Order Received", icon: Package, color: "bg-yellow-100 text-yellow-800" },
   { key: "CONFIRMED", label: "Order Confirmed", icon: CheckCircle, color: "bg-blue-100 text-blue-800" },
   { key: "PREPARING", label: "Preparing", icon: Clock, color: "bg-orange-100 text-orange-800" },
-  { key: "READY", label: "Ready", icon: CheckCircle, color: "bg-green-100 text-green-800" },
+  { key: "WAITING_FOR_PICKUP", label: "Waiting for Pickup", icon: CheckCircle, color: "bg-green-100 text-green-800" },
+  { key: "PICKED_UP", label: "Rider Picked Up", icon: Truck, color: "bg-indigo-100 text-indigo-800" },
   { key: "OUT_FOR_DELIVERY", label: "Out for Delivery", icon: Truck, color: "bg-purple-100 text-purple-800" },
   { key: "DELIVERED", label: "Delivered", icon: CheckCircle, color: "bg-green-100 text-green-800" },
 ]
 
-const statusOrder = ["PENDING", "CONFIRMED", "PREPARING", "READY", "OUT_FOR_DELIVERY", "DELIVERED"]
+const statusOrder = ["PENDING", "CONFIRMED", "PREPARING", "WAITING_FOR_PICKUP", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"]
 
 function TrackOrderContent() {
   const [orderNumber, setOrderNumber] = useState("")
@@ -112,7 +128,7 @@ function TrackOrderContent() {
   }, [searchParams])
 
   const getCurrentStepIndex = (status: string) => {
-    return statusOrder.indexOf(status)
+    return statusOrder.indexOf(status === "READY" ? "WAITING_FOR_PICKUP" : status)
   }
 
   const formatDate = (dateString: string) => {
@@ -125,12 +141,36 @@ function TrackOrderContent() {
     })
   }
 
+  const getStatusTimestamp = (status: string) => {
+    if (!orderDetails) return null
+    switch (status) {
+      case "PENDING":
+        return orderDetails.createdAt
+      case "CONFIRMED":
+        return orderDetails.confirmedAt
+      case "PREPARING":
+        return orderDetails.preparingAt
+      case "WAITING_FOR_PICKUP":
+        return orderDetails.waitingForPickupAt
+      case "PICKED_UP":
+        return orderDetails.pickedUpAt
+      case "OUT_FOR_DELIVERY":
+        return orderDetails.outForDeliveryAt
+      case "DELIVERED":
+        return orderDetails.deliveredAt
+      default:
+        return null
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING": return "bg-yellow-100 text-yellow-800"
       case "CONFIRMED": return "bg-blue-100 text-blue-800"
       case "PREPARING": return "bg-orange-100 text-orange-800"
       case "READY": return "bg-green-100 text-green-800"
+      case "WAITING_FOR_PICKUP": return "bg-green-100 text-green-800"
+      case "PICKED_UP": return "bg-indigo-100 text-indigo-800"
       case "OUT_FOR_DELIVERY": return "bg-purple-100 text-purple-800"
       case "DELIVERED": return "bg-green-100 text-green-800"
       case "CANCELLED": return "bg-red-100 text-red-800"
@@ -274,6 +314,11 @@ function TrackOrderContent() {
                             <p className={cn("text-xs font-medium", isCompleted ? "text-primary" : "text-gray-500")}>
                               {step.label}
                             </p>
+                            {isCompleted && getStatusTimestamp(step.key) && (
+                              <p className="mt-1 text-[10px] text-gray-400">
+                                {formatDate(getStatusTimestamp(step.key) as string)}
+                              </p>
+                            )}
                           </div>
                         )
                       })}
@@ -281,6 +326,22 @@ function TrackOrderContent() {
                   </div>
                 </CardContent>
               </Card>
+
+              {orderDetails.activeDeliveryAssignment && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Delivery Info</CardTitle>
+                    <CardDescription>
+                      {orderDetails.activeDeliveryAssignment.assignmentType === "INTERNAL" ? "Assigned internal rider" : "Assigned third-party delivery"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm text-gray-600">
+                    {orderDetails.activeDeliveryAssignment.riderName && <p>Rider: {orderDetails.activeDeliveryAssignment.riderName}</p>}
+                    {orderDetails.activeDeliveryAssignment.providerName && <p>Provider: {orderDetails.activeDeliveryAssignment.providerName}</p>}
+                    {orderDetails.activeDeliveryAssignment.riderPhone && <p>Contact: {orderDetails.activeDeliveryAssignment.riderPhone}</p>}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Order Summary */}
               <Card>
@@ -303,9 +364,13 @@ function TrackOrderContent() {
                         <span>{formatDate(orderDetails.createdAt)}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Delivery Method</span>
+                        <span className="text-gray-600">Fulfillment</span>
                         <span className="font-medium">
-                          {orderDetails.deliveryMethod === "EXPRESS" ? "Express" : "Standard"}
+                          {orderDetails.deliveryMethod === "SELF_PICKUP"
+                            ? "Self Pickup"
+                            : orderDetails.deliveryMethod === "EXPRESS"
+                              ? "Express Delivery"
+                              : "Standard Delivery"}
                         </span>
                       </div>
                     </div>
@@ -315,7 +380,7 @@ function TrackOrderContent() {
                         <span>₦{Number(orderDetails.subtotal).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between items-center mb-4">
-                        <span className="text-gray-600">Delivery Fee</span>
+                        <span className="text-gray-600">{orderDetails.deliveryMethod === "SELF_PICKUP" ? "Pickup Fee" : "Delivery Fee"}</span>
                         <span>₦{Number(orderDetails.deliveryFee).toFixed(2)}</span>
                       </div>
                       {Number((orderDetails as any).vatAmount || 0) > 0 && (
@@ -366,20 +431,23 @@ function TrackOrderContent() {
               {/* Estimated Delivery */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Estimated Delivery</CardTitle>
+                  <CardTitle>{orderDetails.deliveryMethod === "SELF_PICKUP" ? "Pickup Info" : "Estimated Delivery"}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center space-x-4">
                     <Calendar className="h-8 w-8 text-primary" />
                     <div>
                       <p className="font-medium">
-                        {orderDetails.deliveryMethod === "EXPRESS"
-                          ? "Express Delivery (25-35 minutes)"
-                          : "Standard Delivery (45-60 minutes)"
-                        }
+                        {orderDetails.deliveryMethod === "SELF_PICKUP"
+                          ? "Self Pickup"
+                          : orderDetails.deliveryMethod === "EXPRESS"
+                            ? "Express Delivery (25-35 minutes)"
+                            : "Standard Delivery (45-60 minutes)"}
                       </p>
                       <p className="text-sm text-gray-600">
-                        We'll contact you when your order is ready for delivery.
+                        {orderDetails.deliveryMethod === "SELF_PICKUP"
+                          ? "We'll contact you when your order is ready for collection."
+                          : "We'll contact you when your order is ready for delivery."}
                       </p>
                     </div>
                   </div>

@@ -30,7 +30,7 @@ export default function Footer() {
               <span>Place</span>
             </div>
             <p className="text-gray-300 text-sm">
-              South Place Catering Services is an indigenous company committed to excellent depth and comprehensive scope of professional catering service with 8 years of operations.
+              SouthtownPlace Catering Services is an indigenous company committed to excellent depth and comprehensive scope of professional catering service with 8 years of operations.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
@@ -162,7 +162,7 @@ export default function Footer() {
           className="border-t border-gray-700 mt-8 pt-8 text-center"
         >
           <p className="text-gray-400 text-sm mb-2">
-            © {currentYear} South Place Catering Services. All rights reserved.
+            © {currentYear} SouthtownPlace Catering Services. All rights reserved.
           </p>
           <p className="text-gray-500 text-xs">
             Developed by{' '}

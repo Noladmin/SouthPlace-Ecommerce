@@ -17,7 +17,7 @@ interface InvoiceOptions {
 }
 
 const defaultCompanyInfo = {
-  name: "South Place",
+  name: "SouthtownPlace",
   address: "Lagos, Nigeria",
   phone: "+44 (0) 123 456 7890",
   email: "orders@tastybowls.com",
@@ -155,7 +155,7 @@ export class InvoiceService {
     // Company name and details
     doc.fontSize(24)
       .fillColor('#387237')
-      .text(companyInfo.name || 'South Place', 120, 60)
+      .text(companyInfo.name || 'SouthtownPlace', 120, 60)
 
     doc.fontSize(10)
       .fillColor('#666666')

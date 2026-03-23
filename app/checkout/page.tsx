@@ -302,7 +302,7 @@ export default function CheckoutPage() {
     address: "",
     city: "Lagos",
     specialInstructions: "",
-    deliveryMethod: "standard", // standard or express
+    deliveryMethod: "standard", // standard, express, or self_pickup
   })
 
   const [paymentInfo, setPaymentInfo] = useState({
@@ -428,7 +428,8 @@ export default function CheckoutPage() {
     const extrasTotal = (item.extras || []).reduce((sum, ex) => sum + ex.price, 0)
     return total + (itemPrice + extrasTotal) * item.quantity
   }, 0)
-  const deliveryFee = deliveryInfo.deliveryMethod === "express" ? deliveryFees.express : deliveryFees.standard
+  const isSelfPickup = deliveryInfo.deliveryMethod === "self_pickup"
+  const deliveryFee = isSelfPickup ? 0 : deliveryInfo.deliveryMethod === "express" ? deliveryFees.express : deliveryFees.standard
   const vatAmount = vatSettings.enabled ? subtotal * (vatSettings.rate / 100) : 0
   const total = subtotal + deliveryFee + vatAmount
   const stripeMinAmountNgn = Number(process.env.NEXT_PUBLIC_STRIPE_MIN_AMOUNT_NGN || "1000")
@@ -465,7 +466,7 @@ export default function CheckoutPage() {
   // Form validation
   const isDeliveryInfoValid = () => {
     const { firstName, lastName, email, phone, address } = deliveryInfo
-    const all = [firstName, lastName, email, phone, address]
+    const all = isSelfPickup ? [firstName, lastName, email, phone] : [firstName, lastName, email, phone, address]
     return all.every(v => typeof v === 'string' && v.trim().length > 0)
   }
 
@@ -649,7 +650,7 @@ export default function CheckoutPage() {
 
     try {
       // Optionally save address for authenticated users
-      if (isAuthenticated && saveAddress) {
+      if (isAuthenticated && saveAddress && !isSelfPickup) {
         try {
           await fetch('/api/auth/customer/address', {
             method: 'PUT',
@@ -670,8 +671,8 @@ export default function CheckoutPage() {
         customerName: effectiveCustomerName,
         customerEmail: deliveryInfo.email,
         customerPhone: deliveryInfo.phone,
-        deliveryAddress: deliveryInfo.address,
-        deliveryCity: deliveryInfo.city,
+        deliveryAddress: isSelfPickup ? "Self Pickup" : deliveryInfo.address,
+        deliveryCity: isSelfPickup ? "Lagos" : deliveryInfo.city,
         specialInstructions: deliveryInfo.specialInstructions,
         deliveryMethod: deliveryInfo.deliveryMethod,
         paymentMethod: selectedPaymentProvider,
@@ -1088,42 +1089,172 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="mb-6">
-                    <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                      Delivery Address *
-                    </label>
-                    <input
-                      type="text"
-                      id="address"
-                      name="address"
-                      value={deliveryInfo.address}
-                      onChange={handleDeliveryInfoChange}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all"
-                      required
-                      aria-invalid={!deliveryInfo.address}
-                    />
-                  </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">Fulfillment Option *</label>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div
+                        className={cn(
+                          "border rounded-lg p-4 cursor-pointer transition-all",
+                          !isSelfPickup
+                            ? "border-primary bg-primary/5"
+                            : "border-gray-200 hover:border-gray-300",
+                        )}
+                        onClick={() => setDeliveryInfo((prev) => ({ ...prev, deliveryMethod: prev.deliveryMethod === "self_pickup" ? "standard" : prev.deliveryMethod }))}
+                      >
+                        <div className="flex items-start">
+                          <div
+                            className={cn(
+                              "w-5 h-5 rounded-full border flex items-center justify-center mr-3 mt-0.5",
+                              !isSelfPickup ? "border-primary" : "border-gray-300",
+                            )}
+                          >
+                            {!isSelfPickup && <div className="w-3 h-3 rounded-full bg-primary"></div>}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <Truck className="h-4 w-4 text-primary" />
+                              <h3 className="font-medium">Delivery</h3>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">Send the order to the customer address.</p>
+                          </div>
+                        </div>
+                      </div>
 
-                  <div className="grid md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                        City *
-                      </label>
-                      <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        value={deliveryInfo.city}
-                        onChange={handleDeliveryInfoChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-gray-100"
-                        disabled
-                      />
-                      <p className="text-xs text-gray-500 mt-1">We currently only deliver to Lagos</p>
+                      <div
+                        className={cn(
+                          "border rounded-lg p-4 cursor-pointer transition-all",
+                          isSelfPickup
+                            ? "border-primary bg-primary/5"
+                            : "border-gray-200 hover:border-gray-300",
+                        )}
+                        onClick={() => setDeliveryInfo((prev) => ({ ...prev, deliveryMethod: "self_pickup" }))}
+                      >
+                        <div className="flex items-start">
+                          <div
+                            className={cn(
+                              "w-5 h-5 rounded-full border flex items-center justify-center mr-3 mt-0.5",
+                              isSelfPickup ? "border-primary" : "border-gray-300",
+                            )}
+                          >
+                            {isSelfPickup && <div className="w-3 h-3 rounded-full bg-primary"></div>}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <Package className="h-4 w-4 text-primary" />
+                              <h3 className="font-medium">Self Pickup</h3>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">Customer will come and collect the order personally.</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
+                  {!isSelfPickup && (
+                    <>
+                      <div className="mb-6">
+                        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+                          Delivery Address *
+                        </label>
+                        <input
+                          type="text"
+                          id="address"
+                          name="address"
+                          value={deliveryInfo.address}
+                          onChange={handleDeliveryInfoChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all"
+                          required={!isSelfPickup}
+                          aria-invalid={!deliveryInfo.address}
+                        />
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+                            City *
+                          </label>
+                          <input
+                            type="text"
+                            id="city"
+                            name="city"
+                            value={deliveryInfo.city}
+                            onChange={handleDeliveryInfoChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-gray-100"
+                            disabled
+                          />
+                          <p className="text-xs text-gray-500 mt-1">We currently only deliver to Lagos</p>
+                        </div>
+                      </div>
+
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">Delivery Speed *</label>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div
+                            className={cn(
+                              "border rounded-lg p-4 cursor-pointer transition-all",
+                              deliveryInfo.deliveryMethod === "standard"
+                                ? "border-primary bg-primary/5"
+                                : "border-gray-200 hover:border-gray-300",
+                            )}
+                            onClick={() => setDeliveryInfo((prev) => ({ ...prev, deliveryMethod: "standard" }))}
+                          >
+                            <div className="flex items-start">
+                              <div
+                                className={cn(
+                                  "w-5 h-5 rounded-full border flex items-center justify-center mr-3 mt-0.5",
+                                  deliveryInfo.deliveryMethod === "standard" ? "border-primary" : "border-gray-300",
+                                )}
+                              >
+                                {deliveryInfo.deliveryMethod === "standard" && (
+                                  <div className="w-3 h-3 rounded-full bg-primary"></div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="flex items-center">
+                                  <h3 className="font-medium">Standard Delivery</h3>
+                                  <span className="ml-auto font-medium">₦{deliveryFees.standard.toFixed(2)}</span>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-1">Delivery within 45-60 minutes</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div
+                            className={cn(
+                              "border rounded-lg p-4 cursor-pointer transition-all",
+                              deliveryInfo.deliveryMethod === "express"
+                                ? "border-primary bg-primary/5"
+                                : "border-gray-200 hover:border-gray-300",
+                            )}
+                            onClick={() => setDeliveryInfo((prev) => ({ ...prev, deliveryMethod: "express" }))}
+                          >
+                            <div className="flex items-start">
+                              <div
+                                className={cn(
+                                  "w-5 h-5 rounded-full border flex items-center justify-center mr-3 mt-0.5",
+                                  deliveryInfo.deliveryMethod === "express" ? "border-primary" : "border-gray-300",
+                                )}
+                              >
+                                {deliveryInfo.deliveryMethod === "express" && (
+                                  <div className="w-3 h-3 rounded-full bg-primary"></div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="flex items-center">
+                                  <h3 className="font-medium">Express Delivery</h3>
+                                  <span className="ml-auto font-medium">₦{deliveryFees.express.toFixed(2)}</span>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-1">Priority delivery within 25-35 minutes</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <div className="mb-6">
                     <label htmlFor="specialInstructions" className="block text-sm font-medium text-gray-700 mb-1">
-                      Delivery Instructions (Optional)
+                      {isSelfPickup ? "Pickup Notes (Optional)" : "Delivery Instructions (Optional)"}
                     </label>
                     <textarea
                       id="specialInstructions"
@@ -1132,80 +1263,19 @@ export default function CheckoutPage() {
                       onChange={handleDeliveryInfoChange}
                       rows={3}
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all"
-                      placeholder="E.g., Ring doorbell, leave at the door, etc."
+                      placeholder={isSelfPickup ? "E.g., customer arrival time or pickup contact." : "E.g., Ring doorbell, leave at the door, etc."}
                     ></textarea>
                   </div>
 
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Delivery Method *</label>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div
-                        className={cn(
-                          "border rounded-lg p-4 cursor-pointer transition-all",
-                          deliveryInfo.deliveryMethod === "standard"
-                            ? "border-primary bg-primary/5"
-                            : "border-gray-200 hover:border-gray-300",
-                        )}
-                        onClick={() => setDeliveryInfo((prev) => ({ ...prev, deliveryMethod: "standard" }))}
-                      >
-                        <div className="flex items-start">
-                          <div
-                            className={cn(
-                              "w-5 h-5 rounded-full border flex items-center justify-center mr-3 mt-0.5",
-                              deliveryInfo.deliveryMethod === "standard" ? "border-primary" : "border-gray-300",
-                            )}
-                          >
-                            {deliveryInfo.deliveryMethod === "standard" && (
-                              <div className="w-3 h-3 rounded-full bg-primary"></div>
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center">
-                              <h3 className="font-medium">Standard Delivery</h3>
-                              <span className="ml-auto font-medium">₦{deliveryFees.standard.toFixed(2)}</span>
-                            </div>
-                            <p className="text-sm text-gray-500 mt-1">Delivery within 45-60 minutes</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div
-                        className={cn(
-                          "border rounded-lg p-4 cursor-pointer transition-all",
-                          deliveryInfo.deliveryMethod === "express"
-                            ? "border-primary bg-primary/5"
-                            : "border-gray-200 hover:border-gray-300",
-                        )}
-                        onClick={() => setDeliveryInfo((prev) => ({ ...prev, deliveryMethod: "express" }))}
-                      >
-                        <div className="flex items-start">
-                          <div
-                            className={cn(
-                              "w-5 h-5 rounded-full border flex items-center justify-center mr-3 mt-0.5",
-                              deliveryInfo.deliveryMethod === "express" ? "border-primary" : "border-gray-300",
-                            )}
-                          >
-                            {deliveryInfo.deliveryMethod === "express" && (
-                              <div className="w-3 h-3 rounded-full bg-primary"></div>
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center">
-                              <h3 className="font-medium">Express Delivery</h3>
-                              <span className="ml-auto font-medium">₦{deliveryFees.express.toFixed(2)}</span>
-                            </div>
-                            <p className="text-sm text-gray-500 mt-1">Priority delivery within 25-35 minutes</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <label className="inline-flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} />
-                      Save this address to my account
-                    </label>
+                    {!isSelfPickup ? (
+                      <label className="inline-flex items-center gap-2 text-sm">
+                        <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} />
+                        Save this address to my account
+                      </label>
+                    ) : (
+                      <span className="text-sm text-gray-500">Pickup orders do not save a delivery address.</span>
+                    )}
                     <Button onClick={handlePrepareOrder} disabled={isProcessing || !isDeliveryInfoValid()} className="w-full sm:w-auto rounded-lg px-4 sm:px-8 py-3 sm:py-2 bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/20">
                       {isProcessing ? (
                         <>
@@ -1460,7 +1530,7 @@ export default function CheckoutPage() {
                   <span>₦{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Delivery Fee</span>
+                  <span className="text-gray-600">{isSelfPickup ? "Pickup Fee" : "Delivery Fee"}</span>
                   <span>₦{deliveryFee.toFixed(2)}</span>
                 </div>
                 {vatSettings.enabled && (
@@ -1479,13 +1549,15 @@ export default function CheckoutPage() {
                 <div className="flex items-start">
                   <Truck className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-medium text-sm">Delivery Details</h3>
+                    <h3 className="font-medium text-sm">{isSelfPickup ? "Pickup Details" : "Delivery Details"}</h3>
                     <p className="text-gray-600 text-xs mt-1">
-                      {deliveryInfo.deliveryMethod === "express"
-                        ? "Express Delivery (25-35 minutes)"
-                        : "Standard Delivery (45-60 minutes)"}
+                      {isSelfPickup
+                        ? "Customer will pick up this order personally."
+                        : deliveryInfo.deliveryMethod === "express"
+                          ? "Express Delivery (25-35 minutes)"
+                          : "Standard Delivery (45-60 minutes)"}
                     </p>
-                    {deliveryInfo.address && (
+                    {!isSelfPickup && deliveryInfo.address && (
                       <p className="text-gray-600 text-xs mt-1">
                         Delivering to: {deliveryInfo.address}, {deliveryInfo.city}
                       </p>

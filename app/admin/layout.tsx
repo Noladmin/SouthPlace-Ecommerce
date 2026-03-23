@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: "South Place Catering - Admin",
-  description: "Admin dashboard for South Place Catering",
+  title: "SouthtownPlace Catering - Admin",
+  description: "Admin dashboard for SouthtownPlace Catering",
 }
 
 export default function AdminLayout({

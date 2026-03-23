@@ -28,6 +28,7 @@ model Admin {
   sessions      AdminSession[]
   otpCodes      OTPCode[]
   loginAttempts LoginAttempt[]
+  deliveryAssignments DeliveryAssignment[] @relation("DeliveryAssignmentsByAdmin")
 
   @@map("admins")
 }
@@ -225,14 +226,97 @@ model Order {
   paymentStatus        String?
   paymentIntentId      String?
   paidAt               DateTime?
+  activeDeliveryAssignmentId String?
+  confirmedAt          DateTime?
+  preparingAt          DateTime?
+  waitingForPickupAt   DateTime?
+  pickedUpAt           DateTime?
+  outForDeliveryAt     DateTime?
+  deliveredAt          DateTime?
+  deliveryFailedAt     DateTime?
+  cancelledAt          DateTime?
 
   // Relations
   customer             Customer?   @relation(fields: [customerId], references: [id])
   items                OrderItem[]
   review               Review?
   payments             Payment[]
+  deliveryAssignments  DeliveryAssignment[]
+  activeDeliveryAssignment DeliveryAssignment? @relation("ActiveDeliveryAssignment", fields: [activeDeliveryAssignmentId], references: [id])
+  deliveryVerificationCodes DeliveryVerificationCode[]
 
   @@map("orders")
+}
+
+model Rider {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String   @unique
+  email       String?  @unique
+  vehicleInfo String?
+  notes       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  deliveryAssignments DeliveryAssignment[]
+
+  @@map("riders")
+}
+
+model DeliveryAssignment {
+  id                 String                   @id @default(cuid())
+  orderId            String
+  riderId            String?
+  assignedByAdminId  String?
+  assignmentType     DeliveryAssignmentType
+  providerName       String?
+  riderName          String?
+  riderPhone         String?
+  riderEmail         String?
+  vehicleInfo        String?
+  externalReference  String?
+  notes              String?
+  status             DeliveryAssignmentStatus @default(ASSIGNED)
+  isActive           Boolean                  @default(true)
+  assignedAt         DateTime                 @default(now())
+  pickedUpAt         DateTime?
+  outForDeliveryAt   DateTime?
+  deliveredAt        DateTime?
+  failedAt           DateTime?
+  accessTokenHash    String?
+  accessTokenExpiresAt DateTime?
+  accessTokenUsedAt  DateTime?
+  accessTokenSentAt  DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  order              Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  rider              Rider?                   @relation(fields: [riderId], references: [id])
+  assignedByAdmin    Admin?                   @relation("DeliveryAssignmentsByAdmin", fields: [assignedByAdminId], references: [id], onDelete: SetNull)
+  activeForOrder     Order[]                  @relation("ActiveDeliveryAssignment")
+  verificationCodes  DeliveryVerificationCode[]
+
+  @@map("delivery_assignments")
+}
+
+model DeliveryVerificationCode {
+  id                  String   @id @default(cuid())
+  orderId             String
+  deliveryAssignmentId String?
+  codeHash            String
+  expiresAt           DateTime
+  usedAt              DateTime?
+  sentAt              DateTime?
+  attempts            Int      @default(0)
+  maxAttempts         Int      @default(5)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  deliveryAssignment  DeliveryAssignment? @relation(fields: [deliveryAssignmentId], references: [id], onDelete: SetNull)
+
+  @@map("delivery_verification_codes")
 }
 
 // Payment tracking model
@@ -371,9 +455,26 @@ enum OrderStatus {
   PENDING
   CONFIRMED
   PREPARING
+  WAITING_FOR_PICKUP
+  PICKED_UP
   READY
   OUT_FOR_DELIVERY
   DELIVERED
+  DELIVERY_FAILED
+  CANCELLED
+}
+
+enum DeliveryAssignmentType {
+  INTERNAL
+  THIRD_PARTY
+}
+
+enum DeliveryAssignmentStatus {
+  ASSIGNED
+  PICKED_UP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
   CANCELLED
 }
 

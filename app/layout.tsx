@@ -7,23 +7,23 @@ import { inter, montserrat } from "@/lib/fonts"
 import AOSInit from "@/components/UI/AOSInit"
 
 export const metadata: Metadata = {
-  title: "South Place Catering Services | Professional Catering & Facilities Management",
+  title: "SouthtownPlace Catering Services | Professional Catering & Facilities Management",
   description:
-    "South Place Catering Services provides professional catering, facilities management, housekeeping, and support services across Nigeria. Trusted for quality and reliability.",
+    "SouthtownPlace Catering Services provides professional catering, facilities management, housekeeping, and support services across Nigeria. Trusted for quality and reliability.",
   keywords:
     "catering services Nigeria, industrial catering, facilities management, housekeeping services, laundry services, corporate catering",
   openGraph: {
-    title: "South Place Catering Services | Professional Catering Solutions",
+    title: "SouthtownPlace Catering Services | Professional Catering Solutions",
     description:
       "Excellence in industrial catering, facilities management, and support services across Nigeria.",
     url: "https://www.southplacecatering.com",
-    siteName: "South Place Catering Services",
+    siteName: "SouthtownPlace Catering Services",
     images: [
       {
         url: "/images/food1.webp",
         width: 1200,
         height: 630,
-        alt: "South Place Catering Services",
+        alt: "SouthtownPlace Catering Services",
       },
     ],
     locale: "en_NG",
@@ -49,11 +49,11 @@ export default function RootLayout({
         <meta name="theme-color" content="#F97316" />
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="South Place Catering Services" />
+        <meta name="twitter:title" content="SouthtownPlace Catering Services" />
         <meta name="twitter:description" content="Professional catering and facilities management services in Nigeria." />
         <meta name="twitter:image" content="https://www.southplacecatering.com/images/food1.webp" />
         {/* Open Graph (redundant with metadata, but for extra compatibility) */}
-        <meta property="og:title" content="South Place Catering Services | Professional Catering Solutions" />
+        <meta property="og:title" content="SouthtownPlace Catering Services | Professional Catering Solutions" />
         <meta property="og:description" content="Excellence in industrial catering, facilities management, and support services across Nigeria." />
         <meta property="og:image" content="https://www.southplacecatering.com/images/food1.webp" />
         <meta property="og:url" content="https://www.southplacecatering.com/" />
@@ -64,7 +64,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "South Place Catering Services",
+              "name": "SouthtownPlace Catering Services",
               "image": "https://www.southplacecatering.com/images/food1.webp",
               "address": {
                 "@type": "PostalAddress",

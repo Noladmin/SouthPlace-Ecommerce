@@ -34,7 +34,7 @@ export default function AboutPageClient() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 font-display text-gray-900"
             >
-              About <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-500">South Place</span>
+              About <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-500">SouthtownPlace</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -66,9 +66,9 @@ export default function AboutPageClient() {
                 <h2 className="text-4xl md:text-5xl font-bold mb-8 font-display text-gray-900">Our Journey</h2>
                 <div className="space-y-4 text-gray-600 text-lg leading-relaxed">
                   <p>
-                    South Place Lagos was born from a deep love for African culinary traditions and a desire to
+                    SouthtownPlace Lagos was born from a deep love for African culinary traditions and a desire to
                     share these authentic flavors with the Lagos community. Our founder, inspired by family
-                    recipes passed down through generations, established South Place in 2023.
+                    recipes passed down through generations, established SouthtownPlace in 2023.
                   </p>
                   <p>
                     What began as a small catering service quickly grew into a beloved food delivery and event
@@ -92,7 +92,7 @@ export default function AboutPageClient() {
               <div className="relative h-96 md:h-auto">
                 <Image
                   src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=2070&auto=format&fit=crop"
-                  alt="The beginning of South Place"
+                  alt="The beginning of SouthtownPlace"
                   fill
                   className="object-cover"
                 />

@@ -94,13 +94,13 @@ export const sendEmailOTP = async (
 const getOTPEmailSubject = (type: OTPType): string => {
   switch (type) {
     case "LOGIN":
-      return "South Place Admin - Login OTP"
+      return "SouthtownPlace Admin - Login OTP"
     case "PASSWORD_RESET":
-      return "South Place Admin - Password Reset OTP"
+      return "SouthtownPlace Admin - Password Reset OTP"
     case "TWO_FACTOR":
-      return "South Place Admin - Two-Factor Authentication"
+      return "SouthtownPlace Admin - Two-Factor Authentication"
     default:
-      return "South Place Admin - Verification Code"
+      return "SouthtownPlace Admin - Verification Code"
   }
 }
 
@@ -114,7 +114,7 @@ const generateOTPEmailTemplate = (otp: string, type: OTPType): string => {
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px;">
       <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <div style="text-align: center; margin-bottom: 30px;">
-          <img src="${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ""}/images/SouthLogo.png" alt="South Place" style="height: 60px; width: auto;">
+          <img src="${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ""}/images/SouthLogo.png" alt="SouthtownPlace" style="height: 60px; width: auto;">
         </div>
         
         <h2 style="color: #387237; text-align: center; margin-bottom: 20px;">${title}</h2>
@@ -136,7 +136,7 @@ const generateOTPEmailTemplate = (otp: string, type: OTPType): string => {
         
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
           <p style="color: #999; font-size: 12px;">
-            South Place Lagos<br>
+            SouthtownPlace Lagos<br>
             Authentic African Cuisine & Catering
           </p>
         </div>

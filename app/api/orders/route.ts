@@ -12,7 +12,7 @@ const orderSubmissionSchema = z.object({
   deliveryAddress: z.string().min(5, "Delivery address is required"),
   deliveryCity: z.string().min(2, "City is required"),
   specialInstructions: z.string().optional(),
-  deliveryMethod: z.enum(["standard", "express", "STANDARD", "EXPRESS"]).transform(val => val.toLowerCase()),
+  deliveryMethod: z.enum(["standard", "express", "self_pickup", "STANDARD", "EXPRESS", "SELF_PICKUP"]).transform(val => val.toLowerCase()),
   paymentMethod: z.enum(["cash", "card", "online", "stripe", "paystack", "CASH", "CARD", "ONLINE", "STRIPE", "PAYSTACK"]).transform(val => val.toLowerCase()),
   items: z.array(z.object({
     id: z.union([z.string(), z.number()]).transform(val => String(val)),
@@ -64,6 +64,13 @@ export async function POST(request: NextRequest) {
       throw validationError
     }
 
+    if (validatedData.deliveryMethod === "self_pickup" && validatedData.deliveryFee !== 0) {
+      return NextResponse.json({
+        success: false,
+        error: "Self pickup orders must have zero delivery fee",
+      }, { status: 400 })
+    }
+
     // Generate order number
     const orderNumber = generateOrderNumber()
 
@@ -78,7 +85,7 @@ export async function POST(request: NextRequest) {
           deliveryAddress: validatedData.deliveryAddress,
           deliveryCity: validatedData.deliveryCity,
           specialInstructions: validatedData.specialInstructions || "",
-          deliveryMethod: validatedData.deliveryMethod === "express" ? "EXPRESS" : "STANDARD",
+          deliveryMethod: validatedData.deliveryMethod === "self_pickup" ? "SELF_PICKUP" : validatedData.deliveryMethod === "express" ? "EXPRESS" : "STANDARD",
           paymentMethod: validatedData.paymentMethod === "stripe" ? "STRIPE" : validatedData.paymentMethod.toUpperCase(),
           subtotal: validatedData.subtotal,
           deliveryFee: validatedData.deliveryFee,
@@ -157,7 +164,7 @@ export async function POST(request: NextRequest) {
           quantity: ex.quantity,
         }))
       })),
-      estimatedDelivery: order.deliveryMethod === 'EXPRESS' ? '30-45 minutes' : '45-60 minutes'
+      estimatedDelivery: order.deliveryMethod === 'SELF_PICKUP' ? 'Pickup when ready' : order.deliveryMethod === 'EXPRESS' ? '30-45 minutes' : '45-60 minutes'
     }
 
     // Send admin notification (async, don't wait for it)

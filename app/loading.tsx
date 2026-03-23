@@ -10,7 +10,7 @@ export default function Loading() {
           {/* Logo with glow */}
           <Image
             src="/images/SouthLogo.png"
-            alt="South Place Catering Logo"
+            alt="SouthtownPlace Catering Logo"
             width={170}
             height={170}
             className="drop-shadow-[0_0_32px_rgba(232,73,40,0.5)] rounded-full bg-white/10 p-2"

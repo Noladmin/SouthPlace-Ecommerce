@@ -316,7 +316,7 @@ export default function ContactPageClient() {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="South Place Lagos Location"
+              title="SouthtownPlace Lagos Location"
             ></iframe>
           </div>
         </div>

@@ -17,6 +17,19 @@ interface OrderItemEmail {
   extras?: Array<{ name: string; price: number; quantity?: number }>
 }
 
+interface RiderAssignmentEmailPayload {
+  riderName?: string | null
+  orderNumber: string
+  customerName: string
+  deliveryLink: string
+}
+
+interface DeliveryCodeEmailPayload {
+  customerName: string
+  orderNumber: string
+  code: string
+}
+
 export interface OrderEmailPayload {
   id?: string
   orderNumber: string
@@ -61,8 +74,8 @@ function baseEmailLayout(title: string, bodyHtml: string): string {
       <tr>
         <td style="background:linear-gradient(135deg,#387237,#4a8a4a); padding:20px 24px; color:#fff;">
           <div style="display:flex; align-items:center; gap:12px;">
-            <img src="${baseUrl}/images/SouthLogo.png" alt="South Place" width="36" height="36" style="border-radius:6px;" />
-            <div style="font-size:18px; font-weight:700;">South Place</div>
+            <img src="${baseUrl}/images/SouthLogo.png" alt="SouthtownPlace" width="36" height="36" style="border-radius:6px;" />
+            <div style="font-size:18px; font-weight:700;">SouthtownPlace</div>
           </div>
           <div style="font-size:14px; opacity:0.9; margin-top:4px;">${title}</div>
         </td>
@@ -72,7 +85,7 @@ function baseEmailLayout(title: string, bodyHtml: string): string {
       </tr>
       <tr>
         <td style="padding:16px 24px; background:#f8faf8; color:#61776b; font-size:12px;">
-          South Place Lagos · Authentic African Cuisine & Catering
+          SouthtownPlace Lagos · Authentic African Cuisine & Catering
         </td>
       </tr>
     </table>
@@ -124,12 +137,12 @@ async function testConnection(): Promise<{ success: boolean; error?: string }> {
 }
 
 function buildWelcomeEmail(payload: WelcomeEmailPayload): { subject: string; html: string } {
-  const subject = "Welcome to South Place!"
+  const subject = "Welcome to SouthtownPlace!"
   const html = baseEmailLayout(
-    "Welcome to South Place",
+    "Welcome to SouthtownPlace",
     `
       <p style="margin:0 0 12px;">Hi <strong>${payload.name}</strong>,</p>
-      <p style="margin:0 0 12px;">Thanks for creating an account with South Place. We're excited to serve you!</p>
+      <p style="margin:0 0 12px;">Thanks for creating an account with SouthtownPlace. We're excited to serve you!</p>
       <div style="margin-top:16px; padding:12px 14px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
         <div style="font-weight:700; margin-bottom:6px;">Your details</div>
         <div style="font-size:14px; color:#374151;">Email: ${payload.email}</div>
@@ -143,7 +156,7 @@ function buildWelcomeEmail(payload: WelcomeEmailPayload): { subject: string; htm
 }
 
 function buildOrderConfirmationEmail(order: OrderEmailPayload): { subject: string; html: string } {
-  const subject = `Your South Place order ${order.orderNumber} is confirmed`
+  const subject = `Your SouthtownPlace order ${order.orderNumber} is confirmed`
   const html = baseEmailLayout(
     "Order Confirmation",
     `
@@ -194,13 +207,13 @@ function buildAdminNewOrderEmail(order: OrderEmailPayload): { subject: string; h
 }
 
 function buildOrderDeliveredEmail(order: OrderEmailPayload): { subject: string; html: string } {
-  const subject = `Your South Place order ${order.orderNumber} has been delivered`
+  const subject = `Your SouthtownPlace order ${order.orderNumber} has been delivered`
   const html = baseEmailLayout(
     "Order Delivered",
     `
       <p style="margin:0 0 12px;">Hi <strong>${order.customerName}</strong>,</p>
       <p style="margin:0 0 12px;">Your order <strong>${order.orderNumber}</strong> has been delivered. Enjoy your meal!</p>
-      <p style="margin:12px 0 0;">Thank you for ordering with South Place.</p>
+      <p style="margin:12px 0 0;">Thank you for ordering with SouthtownPlace.</p>
     `
   )
   return { subject, html }
@@ -214,6 +227,43 @@ function buildOrderStatusUpdateEmail(order: OrderEmailPayload, status: string): 
       <p style="margin:0 0 12px;">Hi <strong>${order.customerName}</strong>,</p>
       <p style="margin:0 0 12px;">The status of your order <strong>${order.orderNumber}</strong> has changed to <strong>${status.replace(/_/g, " ")}</strong>.</p>
       <p style="margin:12px 0 0;">We'll notify you of further updates.</p>
+    `
+  )
+  return { subject, html }
+}
+
+function buildRiderAssignmentEmail(payload: RiderAssignmentEmailPayload): { subject: string; html: string } {
+  const subject = `Delivery assignment for order ${payload.orderNumber}`
+  const html = baseEmailLayout(
+    "Delivery Assignment",
+    `
+      <p style="margin:0 0 12px;">Hi <strong>${payload.riderName || "Rider"}</strong>,</p>
+      <p style="margin:0 0 12px;">You have been assigned a delivery for order <strong>${payload.orderNumber}</strong>.</p>
+      <div style="margin:12px 0; padding:12px 14px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+        <div style="font-size:14px; color:#374151;">Customer: ${payload.customerName}</div>
+        <div style="font-size:14px; color:#374151; margin-top:6px;">Open the secure link below to view the delivery details.</div>
+      </div>
+      <p style="margin:16px 0 0;">
+        <a href="${payload.deliveryLink}" style="display:inline-block; padding:10px 16px; background:#387237; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:700;">Open delivery link</a>
+      </p>
+      <p style="margin:16px 0 0; font-size:13px; color:#6b7280;">This link is for this assignment only.</p>
+    `
+  )
+  return { subject, html }
+}
+
+function buildDeliveryCodeEmail(payload: DeliveryCodeEmailPayload): { subject: string; html: string } {
+  const subject = `Your SouthtownPlace delivery code for ${payload.orderNumber}`
+  const html = baseEmailLayout(
+    "Delivery Verification Code",
+    `
+      <p style="margin:0 0 12px;">Hi <strong>${payload.customerName}</strong>,</p>
+      <p style="margin:0 0 12px;">Use this code only when your order arrives.</p>
+      <div style="background:linear-gradient(135deg,#387237,#4a8a4a); padding:24px; text-align:center; border-radius:10px; margin:18px 0;">
+        <div style="color:#ffffff; font-size:34px; letter-spacing:8px; font-weight:700;">${payload.code}</div>
+      </div>
+      <p style="margin:0; color:#374151;">Order: <strong>${payload.orderNumber}</strong></p>
+      <p style="margin:12px 0 0; font-size:13px; color:#6b7280;">Share this code only with the rider when your food has been delivered to you.</p>
     `
   )
   return { subject, html }
@@ -250,6 +300,18 @@ async function sendOrderStatusUpdate(order: OrderEmailPayload, status: string): 
   return sendEmail(order.customerEmail, subject, html)
 }
 
+async function sendRiderAssignmentLink(to: string, payload: RiderAssignmentEmailPayload): Promise<EmailSendResult> {
+  if (!to) return { success: false, error: "Missing rider email" }
+  const { subject, html } = buildRiderAssignmentEmail(payload)
+  return sendEmail(to, subject, html)
+}
+
+async function sendDeliveryCode(to: string, payload: DeliveryCodeEmailPayload): Promise<EmailSendResult> {
+  if (!to) return { success: false, error: "Missing customer email" }
+  const { subject, html } = buildDeliveryCodeEmail(payload)
+  return sendEmail(to, subject, html)
+}
+
 export const emailService = {
   testConnection,
   sendEmail,
@@ -258,4 +320,6 @@ export const emailService = {
   sendNewOrderNotification,
   sendOrderDelivered,
   sendOrderStatusUpdate,
+  sendRiderAssignmentLink,
+  sendDeliveryCode,
 }

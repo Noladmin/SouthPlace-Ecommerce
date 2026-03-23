@@ -379,7 +379,8 @@ export default function AdminDashboardPage() {
                         data={[
                           { name: 'Pending', value: statusCounts.pending, color: '#eab308' },
                           { name: 'Preparing', value: statusCounts.preparing, color: '#f97316' },
-                          { name: 'Ready', value: statusCounts.ready, color: '#22c55e' },
+                          { name: 'Waiting Pickup', value: statusCounts.waitingForPickup || statusCounts.ready, color: '#22c55e' },
+                          { name: 'Picked Up', value: statusCounts.pickedUp || 0, color: '#6366f1' },
                           { name: 'Delivered', value: statusCounts.delivered, color: '#10b981' },
                           { name: 'Cancelled', value: statusCounts.cancelled || 0, color: '#ef4444' },
                         ].filter(d => d.value > 0)}
@@ -393,7 +394,8 @@ export default function AdminDashboardPage() {
                         {[
                           { name: 'Pending', value: statusCounts.pending, color: '#eab308' },
                           { name: 'Preparing', value: statusCounts.preparing, color: '#f97316' },
-                          { name: 'Ready', value: statusCounts.ready, color: '#22c55e' },
+                          { name: 'Waiting Pickup', value: statusCounts.waitingForPickup || statusCounts.ready, color: '#22c55e' },
+                          { name: 'Picked Up', value: statusCounts.pickedUp || 0, color: '#6366f1' },
                           { name: 'Delivered', value: statusCounts.delivered, color: '#10b981' },
                           { name: 'Cancelled', value: statusCounts.cancelled || 0, color: '#ef4444' },
                         ].filter(d => d.value > 0).map((entry, index) => (
@@ -577,6 +579,8 @@ export default function AdminDashboardPage() {
                                             ${order.status === 'DELIVERED' ? 'bg-green-50 text-green-700 border-green-200' :
                             order.status === 'PENDING' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                               order.status === 'CONFIRMED' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                order.status === 'WAITING_FOR_PICKUP' || order.status === 'READY' ? 'bg-green-50 text-green-700 border-green-200' :
+                                  order.status === 'PICKED_UP' || order.status === 'OUT_FOR_DELIVERY' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
                                 order.status === 'CANCELLED' ? 'bg-red-50 text-red-700 border-red-200' :
                                   'bg-gray-50 text-gray-700 border-gray-200'
                           }

@@ -132,9 +132,12 @@ export default function AnalyticsPage() {
       case "PENDING": return "bg-yellow-50 text-yellow-700 border-yellow-200"
       case "CONFIRMED": return "bg-blue-50 text-blue-700 border-blue-200"
       case "PREPARING": return "bg-orange-50 text-orange-700 border-orange-200"
+      case "WAITING_FOR_PICKUP": return "bg-green-50 text-green-700 border-green-200"
+      case "PICKED_UP": return "bg-indigo-50 text-indigo-700 border-indigo-200"
       case "READY": return "bg-purple-50 text-purple-700 border-purple-200"
       case "OUT_FOR_DELIVERY": return "bg-indigo-50 text-indigo-700 border-indigo-200"
       case "DELIVERED": return "bg-orange-50 text-orange-700 border-orange-200"
+      case "DELIVERY_FAILED": return "bg-red-50 text-red-700 border-red-200"
       case "CANCELLED": return "bg-red-50 text-red-700 border-red-200"
       default: return "bg-gray-50 text-gray-700 border-gray-200"
     }

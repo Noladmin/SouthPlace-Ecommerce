@@ -91,7 +91,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center">
               <img
                 src="/images/SouthLogo.png"
-                alt="South Place Catering"
+                alt="SouthtownPlace Catering"
                 className="h-8 w-auto mr-4"
               />
               <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>

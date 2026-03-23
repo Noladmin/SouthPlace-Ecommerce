@@ -18,6 +18,7 @@ import {
   Package,
   Eye,
   MessageSquare,
+  Bike,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -74,6 +75,11 @@ const navigationItems = [
     title: "SMS",
     href: "/admin/sms",
     icon: MessageSquare,
+  },
+  {
+    title: "Riders",
+    href: "/admin/riders",
+    icon: Bike,
   },
   {
     title: "Settings",
@@ -133,19 +139,19 @@ export default function AdminLayout({ children, adminUser }: AdminLayoutProps) {
               <div className="flex items-center gap-3">
                 <Image
                   src="/images/SouthLogo.png"
-                  alt="South Place Catering"
+                  alt="SouthtownPlace Catering"
                   width={32}
                   height={32}
                   className="rounded-lg"
                 />
-                <span className="font-bold text-gray-900 tracking-tight">South Place</span>
+                <span className="font-bold text-gray-900 tracking-tight">SouthtownPlace</span>
               </div>
             )}
             {sidebarCollapsed && (
               <div className="flex items-center justify-center w-full">
                 <Image
                   src="/images/SouthLogo.png"
-                  alt="South Place Catering"
+                  alt="SouthtownPlace Catering"
                   width={32}
                   height={32}
                   className="rounded-lg mb-2"

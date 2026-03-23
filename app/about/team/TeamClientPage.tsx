@@ -20,7 +20,7 @@ const teamMembers = {
     {
       name: "Toju Jack",
       role: "Head Chef / Ops Manager",
-      bio: "The culinary heart of South Place, bringing authentic Nigerian flavors to every dish.",
+      bio: "The culinary heart of SouthtownPlace, bringing authentic Nigerian flavors to every dish.",
       image: "/assets/userPerson.webp",
       social: { instagram: "#", linkedin: "#", twitter: "#" },
     },
@@ -120,7 +120,7 @@ export default function TeamClientPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed"
             >
-              Meet the passionate people behind the delicious food and exceptional service at South Place.
+              Meet the passionate people behind the delicious food and exceptional service at SouthtownPlace.
             </motion.p>
           </div>
         </div>
@@ -291,7 +291,7 @@ export default function TeamClientPage() {
             >
               Become Part of the{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-400">
-                South Place Family
+                SouthtownPlace Family
               </span>
             </motion.h2>
 

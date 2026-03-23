@@ -76,7 +76,7 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
               <Hero
-                title="Order South Place Favorites"
+                title="Order SouthtownPlace Favorites"
                 description="Fresh, flavorful meals made for you. Choose your dishes, add to cart, and checkout in minutes."
                 backgroundImages={[
                   "/images/food1.webp",
@@ -494,7 +494,7 @@ export default function Home() {
                 </div>
                 <FaQuoteLeft className="text-orange-500 text-4xl mb-6 mx-auto" />
                 <p className="text-xl text-gray-700 leading-relaxed mb-8 italic text-center max-w-3xl mx-auto">
-                  &ldquo;South Place Catering has been an absolute pleasure to work with! Their staff canteen services have been a game-changer for our team. They&apos;ve been catering for over 700 people daily for 4 years without stress. The food is delicious, the service is top-notch, and their team is always willing to go above and beyond. We&apos;ve seen a significant boost in staff morale and satisfaction since they took over the canteen. We couldn&apos;t be happier with the service they&apos;ve provided and would highly recommend them to anyone looking for a reliable and exceptional catering partner.&rdquo;
+                  &ldquo;SouthtownPlace Catering has been an absolute pleasure to work with! Their staff canteen services have been a game-changer for our team. They&apos;ve been catering for over 700 people daily for 4 years without stress. The food is delicious, the service is top-notch, and their team is always willing to go above and beyond. We&apos;ve seen a significant boost in staff morale and satisfaction since they took over the canteen. We couldn&apos;t be happier with the service they&apos;ve provided and would highly recommend them to anyone looking for a reliable and exceptional catering partner.&rdquo;
                 </p>
                 <div className="text-center border-t border-gray-200 pt-6">
                   <h4 className="text-2xl font-bold text-gray-900 mb-2">Ibiso Eteh</h4>

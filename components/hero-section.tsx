@@ -72,7 +72,7 @@ export default function HeroSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl"
           >
-            South Place Lagos brings authentic African cuisine to your events and doorstep, with fresh ingredients
+            SouthtownPlace Lagos brings authentic African cuisine to your events and doorstep, with fresh ingredients
             and traditional recipes.
           </motion.p>
 

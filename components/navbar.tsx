@@ -117,7 +117,7 @@ export default function Navbar() {
               <source srcSet="/images/SouthLogo.png" />
               <img
                 src="/images/SouthLogo.png"
-                alt="South Place Logo"
+                alt="SouthtownPlace Logo"
                 className="h-14 w-auto max-h-24 transition-all duration-300"
               />
             </picture>

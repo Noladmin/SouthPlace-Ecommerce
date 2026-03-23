@@ -31,10 +31,25 @@ export type Order = Prisma.OrderGetPayload<{
       }
     }
     customer: true
+    activeDeliveryAssignment: true
+    deliveryAssignments: true
   }
 }>
 export type OrderCreateInput = Prisma.OrderCreateInput
 export type OrderUpdateInput = Prisma.OrderUpdateInput
+
+export type Rider = Prisma.RiderGetPayload<{}>
+export type RiderCreateInput = Prisma.RiderCreateInput
+export type RiderUpdateInput = Prisma.RiderUpdateInput
+
+export type DeliveryAssignment = Prisma.DeliveryAssignmentGetPayload<{
+  include: {
+    rider: true
+    assignedByAdmin: true
+    verificationCodes: true
+  }
+}>
+export type DeliveryVerificationCode = Prisma.DeliveryVerificationCodeGetPayload<{}>
 
 export type OrderItem = Prisma.OrderItemGetPayload<{
   include: {
@@ -254,5 +269,17 @@ export interface OrderFormData {
 
 // Utility types
 export type Role = 'SUPER_ADMIN_USER' | 'ADMIN_USER' | 'USER'
-export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PREPARING' | 'READY' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED'
+export type OrderStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'PREPARING'
+  | 'WAITING_FOR_PICKUP'
+  | 'PICKED_UP'
+  | 'READY'
+  | 'OUT_FOR_DELIVERY'
+  | 'DELIVERED'
+  | 'DELIVERY_FAILED'
+  | 'CANCELLED'
+export type DeliveryAssignmentType = 'INTERNAL' | 'THIRD_PARTY'
+export type DeliveryAssignmentStatus = 'ASSIGNED' | 'PICKED_UP' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'FAILED' | 'CANCELLED'
 export type OTPType = 'LOGIN' | 'PASSWORD_RESET' | 'TWO_FACTOR' 

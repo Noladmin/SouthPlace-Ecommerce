@@ -61,7 +61,7 @@ export default function WhoWeAre() {
       {/* Hero Section */}
       <Hero
         title="Who We Are"
-        subtitle="About South Place"
+        subtitle="About SouthtownPlace"
         description="An indigenous hospitality company with experienced and qualified management staff, committed to providing outstanding standards and cost-effective services with 8 years of operations"
         backgroundImage="/images/catering2.webp"
         showButtons={false}
@@ -87,13 +87,13 @@ export default function WhoWeAre() {
                 </h2>
               </div>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Welcome to South Place! South Place Catering Services is an indigenous company founded on 
+                Welcome to SouthtownPlace! SouthtownPlace Catering Services is an indigenous company founded on 
                 commitment to excellent depth and comprehensive scope of professional catering service. With 8 years 
                 of operations, we are committed to providing high class catering services to the full satisfaction 
                 of our clients.
               </p>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                It is the policy of South Place Catering Services to design executive works and to provide services 
+                It is the policy of SouthtownPlace Catering Services to design executive works and to provide services 
                 that fully meet the requirement and expectation of our clients at all times. Our dedication to excellence, 
                 integrity, and customer satisfaction has made us a trusted partner for leading companies across Nigeria.
               </p>

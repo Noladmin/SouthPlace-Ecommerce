@@ -12,7 +12,7 @@ const testimonials = [
     role: "Event Planner",
     image: "/assets/userPerson.webp",
     quote:
-      "South Place catered my corporate event and the feedback was phenomenal! The Snail & Egg Stew was a hit, and their service was impeccable. Will definitely use them again!",
+      "SouthtownPlace catered my corporate event and the feedback was phenomenal! The Snail & Egg Stew was a hit, and their service was impeccable. Will definitely use them again!",
     rating: 5,
   },
   {
@@ -21,7 +21,7 @@ const testimonials = [
     role: "Food Enthusiast",
     image: "/assets/userPerson.webp",
     quote:
-      "As someone who loves trying different cuisines, I was blown away by the authenticity and flavors of South Place. Their Egusi Soup transported me straight to West Africa!",
+      "As someone who loves trying different cuisines, I was blown away by the authenticity and flavors of SouthtownPlace. Their Egusi Soup transported me straight to West Africa!",
     rating: 5,
   },
   {
@@ -30,7 +30,7 @@ const testimonials = [
     role: "Wedding Client",
     image: "/assets/userPerson.webp",
     quote:
-      "We chose South Place for our wedding reception, and it was the best decision! Our guests are still talking about the food months later. Exceptional service and quality!",
+      "We chose SouthtownPlace for our wedding reception, and it was the best decision! Our guests are still talking about the food months later. Exceptional service and quality!",
     rating: 5,
   },
 ]

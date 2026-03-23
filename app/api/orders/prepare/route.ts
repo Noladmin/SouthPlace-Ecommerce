@@ -12,7 +12,7 @@ const orderPreparationSchema = z.object({
   deliveryAddress: z.string().min(1, "Delivery address is required"),
   deliveryCity: z.string().min(1, "Delivery city is required"),
   specialInstructions: z.string().optional(),
-  deliveryMethod: z.enum(["standard", "express"]).transform(v => v.toUpperCase()),
+  deliveryMethod: z.enum(["standard", "express", "self_pickup"]).transform(v => v.toUpperCase()),
   paymentMethod: z.enum(["stripe", "paystack"]).transform(v => v.toLowerCase()),
   customerId: z.string().optional(),
   items: z.array(z.object({
@@ -60,6 +60,13 @@ export async function POST(request: NextRequest) {
         )
       }
       throw err
+    }
+
+    if (validated.deliveryMethod === "SELF_PICKUP" && validated.deliveryFee !== 0) {
+      return NextResponse.json(
+        { success: false, error: "Self pickup orders must have zero delivery fee" },
+        { status: 400 }
+      )
     }
 
     const vatAmount = Number((validated.vatAmount || 0).toFixed(2))

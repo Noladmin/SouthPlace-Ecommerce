@@ -1,31 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { verifyToken } from "@/lib/services/jwt-service"
 import { prisma } from "@/lib/db"
 import type { OrderStatus } from "@/lib/types"
-
-// Helper function to verify admin authentication
-const verifyAdminAuth = async (request: NextRequest) => {
-  const token = request.cookies.get("admin-token")?.value
-  
-  if (!token) {
-    return { success: false, message: "No token provided", status: 401 }
-  }
-
-  const tokenResult = verifyToken(token)
-  if (!tokenResult.valid || !tokenResult.payload) {
-    return { success: false, message: "Invalid token", status: 401 }
-  }
-
-  const admin = await prisma.admin.findUnique({
-    where: { id: tokenResult.payload.id },
-  })
-
-  if (!admin || !admin.isActive) {
-    return { success: false, message: "Admin not found or inactive", status: 401 }
-  }
-
-  return { success: true, admin }
-}
+import { verifyAdminAuth } from "@/lib/services/admin-auth"
 
 // GET - Fetch orders with pagination and filtering
 export async function GET(request: NextRequest) {
@@ -80,6 +56,7 @@ export async function GET(request: NextRequest) {
               menuItem: true,
             },
           },
+          activeDeliveryAssignment: true,
         },
         skip: (page - 1) * limit,
         take: limit,

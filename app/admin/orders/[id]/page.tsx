@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { motion } from "@/lib/motion"
 import {
   ArrowLeft,
   Clock,
@@ -14,31 +13,37 @@ import {
   XCircle,
   AlertCircle,
   Truck,
-  Calendar,
   CreditCard,
   MessageSquare,
   Edit,
   Save,
   X,
-  Printer
+  Printer,
+  Bike
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import AdminLayout from "@/components/admin-layout"
 import ConfirmationDialog from "@/components/admin/confirmation-dialog"
 import SuccessModal from "@/components/admin/success-modal"
-import type { Order, OrderStatus } from "@/lib/types"
+import type { Order, OrderStatus, Rider } from "@/lib/types"
 
 const statusColors: Record<OrderStatus, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
   CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
   PREPARING: "bg-orange-50 text-orange-700 border-orange-200",
+  WAITING_FOR_PICKUP: "bg-green-50 text-green-700 border-green-200",
+  PICKED_UP: "bg-indigo-50 text-indigo-700 border-indigo-200",
   READY: "bg-green-50 text-green-700 border-green-200",
   OUT_FOR_DELIVERY: "bg-purple-50 text-purple-700 border-purple-200",
   DELIVERED: "bg-orange-50 text-orange-700 border-orange-200",
+  DELIVERY_FAILED: "bg-red-50 text-red-700 border-red-200",
   CANCELLED: "bg-red-50 text-red-700 border-red-200",
 }
 
@@ -46,9 +51,12 @@ const statusIcons: Record<OrderStatus, any> = {
   PENDING: AlertCircle,
   CONFIRMED: CheckCircle,
   PREPARING: Clock,
+  WAITING_FOR_PICKUP: CheckCircle,
+  PICKED_UP: Bike,
   READY: CheckCircle,
   OUT_FOR_DELIVERY: Truck,
   DELIVERED: CheckCircle,
+  DELIVERY_FAILED: XCircle,
   CANCELLED: XCircle,
 }
 
@@ -56,15 +64,17 @@ const statusSteps = [
   { key: "PENDING", label: "Pending", icon: Package },
   { key: "CONFIRMED", label: "Confirmed", icon: CheckCircle },
   { key: "PREPARING", label: "Preparing", icon: Clock },
-  { key: "READY", label: "Ready", icon: CheckCircle },
+  { key: "WAITING_FOR_PICKUP", label: "Waiting Pickup", icon: CheckCircle },
+  { key: "PICKED_UP", label: "Picked Up", icon: Bike },
   { key: "OUT_FOR_DELIVERY", label: "In Transit", icon: Truck },
   { key: "DELIVERED", label: "Delivered", icon: CheckCircle },
 ]
 
-const statusOrder = ["PENDING", "CONFIRMED", "PREPARING", "READY", "OUT_FOR_DELIVERY", "DELIVERED"]
+const statusOrder = ["PENDING", "CONFIRMED", "PREPARING", "WAITING_FOR_PICKUP", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"]
 
 export default function SingleOrderPage() {
   const [order, setOrder] = useState<Order | null>(null)
+  const [riders, setRiders] = useState<Rider[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -75,6 +85,14 @@ export default function SingleOrderPage() {
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
+  const [assignmentType, setAssignmentType] = useState<"INTERNAL" | "THIRD_PARTY">("INTERNAL")
+  const [selectedRiderId, setSelectedRiderId] = useState("")
+  const [thirdPartyForm, setThirdPartyForm] = useState({
+    riderName: "",
+    riderPhone: "",
+    riderEmail: "",
+  })
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false)
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast()
@@ -95,7 +113,12 @@ export default function SingleOrderPage() {
       const authData = await authResponse.json()
       setAdminUser(authData.admin)
 
-      // Load order data
+      const ridersResponse = await fetch("/api/admin/riders")
+      if (ridersResponse.ok) {
+        const ridersData = await ridersResponse.json()
+        setRiders((ridersData.data || []).filter((rider: Rider) => rider.isActive))
+      }
+
       const orderId = params.id as string
       const orderResponse = await fetch(`/api/admin/orders/${orderId}`)
       if (orderResponse.ok) {
@@ -202,7 +225,59 @@ export default function SingleOrderPage() {
   }
 
   const getCurrentStepIndex = (status: string) => {
-    return statusOrder.indexOf(status)
+    return statusOrder.indexOf(status === "READY" ? "WAITING_FOR_PICKUP" : status)
+  }
+
+  const assignDelivery = async () => {
+    if (!order) return
+
+    const payload = assignmentType === "INTERNAL"
+      ? { assignmentType, riderId: selectedRiderId }
+      : { assignmentType, ...thirdPartyForm }
+
+    try {
+      setIsUpdating(true)
+      const response = await fetch(`/api/admin/orders/${order.id}/assignment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to assign rider")
+      setOrder(result.data)
+      setEditedOrder(result.data)
+      setIsAssignmentModalOpen(false)
+      setSuccessMessage("Delivery assignment created and rider access has been prepared.")
+      setShowSuccessModal(true)
+    } catch (error: any) {
+      toast({
+        title: "Assignment error",
+        description: error.message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const resendDeliveryCode = async () => {
+    if (!order) return
+    try {
+      setIsUpdating(true)
+      const response = await fetch(`/api/admin/orders/${order.id}/delivery-code`, { method: "POST" })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to resend code")
+      setSuccessMessage("Customer delivery code was resent.")
+      setShowSuccessModal(true)
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   const formatDate = (dateString: string | Date) => {
@@ -214,6 +289,28 @@ export default function SingleOrderPage() {
       hour: "2-digit",
       minute: "2-digit",
     })
+  }
+
+  const getStatusTimestamp = (status: string) => {
+    if (!order) return null
+    switch (status) {
+      case "PENDING":
+        return order.createdAt
+      case "CONFIRMED":
+        return (order as any).confirmedAt
+      case "PREPARING":
+        return (order as any).preparingAt
+      case "WAITING_FOR_PICKUP":
+        return (order as any).waitingForPickupAt
+      case "PICKED_UP":
+        return (order as any).pickedUpAt
+      case "OUT_FOR_DELIVERY":
+        return (order as any).outForDeliveryAt
+      case "DELIVERED":
+        return (order as any).deliveredAt
+      default:
+        return null
+    }
   }
 
   const getStatusBadge = (status: OrderStatus) => {
@@ -331,9 +428,16 @@ export default function SingleOrderPage() {
                           >
                             <Icon className="h-4 w-4" />
                           </div>
-                          <span className={`text-[10px] font-semibold uppercase tracking-tight ${isCompleted ? 'text-orange-700' : 'text-gray-400'}`}>
-                            {step.label}
-                          </span>
+                          <div className="text-center">
+                            <span className={`block text-[10px] font-semibold uppercase tracking-tight ${isCompleted ? 'text-orange-700' : 'text-gray-400'}`}>
+                              {step.label}
+                            </span>
+                            {isCompleted && getStatusTimestamp(step.key) && (
+                              <span className="block mt-1 text-[10px] text-gray-400">
+                                {formatDate(getStatusTimestamp(step.key) as string)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )
                     })}
@@ -358,22 +462,127 @@ export default function SingleOrderPage() {
                     </Button>
                   )}
                   {order.status === 'PREPARING' && (
-                    <Button onClick={() => updateOrderStatus('READY')} className="bg-green-600 hover:bg-green-700 text-white">
-                      <CheckCircle className="h-4 w-4 mr-2" /> Mark Ready
+                    <Button onClick={() => updateOrderStatus('WAITING_FOR_PICKUP')} className="bg-green-600 hover:bg-green-700 text-white">
+                      <CheckCircle className="h-4 w-4 mr-2" /> Ready for Pickup
                     </Button>
                   )}
-                  {order.status === 'READY' && (
+                  {(order.status === 'WAITING_FOR_PICKUP' || order.status === 'READY') && (
+                    <Button onClick={resendDeliveryCode} variant="outline" className="bg-white">
+                      <MessageSquare className="h-4 w-4 mr-2" /> Resend Customer Code
+                    </Button>
+                  )}
+                  {order.status === 'PICKED_UP' && (
                     <Button onClick={() => updateOrderStatus('OUT_FOR_DELIVERY')} className="bg-purple-600 hover:bg-purple-700 text-white">
-                      <Truck className="h-4 w-4 mr-2" /> Send for Delivery
+                      <Truck className="h-4 w-4 mr-2" /> Start Delivery
                     </Button>
                   )}
                   {order.status === 'OUT_FOR_DELIVERY' && (
-                    <Button onClick={() => updateOrderStatus('DELIVERED')} className="bg-orange-600 hover:bg-orange-500 text-black">
-                      <CheckCircle className="h-4 w-4 mr-2" /> Mark Delivered
+                    <Button onClick={() => updateOrderStatus('DELIVERY_FAILED')} variant="destructive">
+                      <XCircle className="h-4 w-4 mr-2" /> Mark Delivery Failed
                     </Button>
                   )}
                 </div>
               </div>
+            </Card>
+
+            <Card className="border-gray-100 shadow-sm">
+              <CardHeader className="bg-gray-50/50 pb-4 border-b border-gray-100">
+                <CardTitle className="text-lg font-semibold text-gray-900">Delivery Assignment</CardTitle>
+                <CardDescription>Assign only after the order is ready for pickup. Links are generated only for the assigned rider.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5 pt-6">
+                {order.activeDeliveryAssignment ? (
+                  <div className="rounded-xl border border-green-100 bg-green-50/60 p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="border-green-200 text-green-700">
+                        {order.activeDeliveryAssignment.assignmentType.replace("_", " ")}
+                      </Badge>
+                      <span className="text-sm font-medium text-gray-900">
+                        {order.activeDeliveryAssignment.riderName || "Assigned rider"}
+                      </span>
+                    </div>
+                    <div className="mt-3 space-y-1 text-sm text-gray-600">
+                      {order.activeDeliveryAssignment.providerName && <p>Provider: {order.activeDeliveryAssignment.providerName}</p>}
+                      {order.activeDeliveryAssignment.riderPhone && <p>Phone: {order.activeDeliveryAssignment.riderPhone}</p>}
+                      {order.activeDeliveryAssignment.riderEmail && <p>Email: {order.activeDeliveryAssignment.riderEmail}</p>}
+                      <p>Status: {order.activeDeliveryAssignment.status.replace(/_/g, " ")}</p>
+                      <p>Assigned: {formatDate((order.activeDeliveryAssignment as any).assignedAt)}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-500">
+                    No rider assigned yet.
+                  </div>
+                )}
+
+                {(order.status === "WAITING_FOR_PICKUP" || order.status === "READY") && (
+                  <Dialog open={isAssignmentModalOpen} onOpenChange={setIsAssignmentModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-orange-600 hover:bg-orange-700">
+                        <Bike className="h-4 w-4 mr-2" />
+                        {order.activeDeliveryAssignment ? "Reassign Rider" : "Assign Rider"}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-xl">
+                      <DialogHeader>
+                        <DialogTitle>Assign Rider</DialogTitle>
+                        <DialogDescription>Pick an internal rider or enter third-party rider details for this order.</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700">Assignment type</label>
+                          <Select value={assignmentType} onValueChange={(value: "INTERNAL" | "THIRD_PARTY") => setAssignmentType(value)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="INTERNAL">Internal rider</SelectItem>
+                              <SelectItem value="THIRD_PARTY">Third-party rider</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {assignmentType === "INTERNAL" ? (
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Choose rider</label>
+                            <Select value={selectedRiderId} onValueChange={setSelectedRiderId}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a registered rider" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {riders.map((rider) => (
+                                  <SelectItem key={rider.id} value={rider.id}>
+                                    {rider.name} · {rider.phone}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ) : (
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <Input placeholder="Rider name" value={thirdPartyForm.riderName} onChange={(e) => setThirdPartyForm((prev) => ({ ...prev, riderName: e.target.value }))} />
+                            <Input placeholder="Rider phone" value={thirdPartyForm.riderPhone} onChange={(e) => setThirdPartyForm((prev) => ({ ...prev, riderPhone: e.target.value }))} />
+                            <Input placeholder="Rider email" value={thirdPartyForm.riderEmail} onChange={(e) => setThirdPartyForm((prev) => ({ ...prev, riderEmail: e.target.value }))} className="md:col-span-2" />
+                          </div>
+                        )}
+
+                        <Button
+                          onClick={assignDelivery}
+                          disabled={
+                            isUpdating ||
+                            (assignmentType === "INTERNAL" && !selectedRiderId) ||
+                            (assignmentType === "THIRD_PARTY" && (!thirdPartyForm.riderName || !thirdPartyForm.riderPhone || !thirdPartyForm.riderEmail))
+                          }
+                          className="w-full bg-orange-600 hover:bg-orange-700"
+                        >
+                          <Bike className="h-4 w-4 mr-2" />
+                          Save Assignment
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </CardContent>
             </Card>
 
             {/* Items Table */}

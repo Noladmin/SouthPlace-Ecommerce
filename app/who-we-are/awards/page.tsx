@@ -40,28 +40,28 @@ export default function Awards() {
       name: 'Ibiso Eteh',
       position: 'HHR',
       company: 'Lekki Freeport Terminal, Ibeju Lekki',
-      content: 'South Place Catering has been an absolute pleasure to work with! Their staff canteen services have been a game-changer for our team. They&apos;ve been catering for over 700 people daily for 4 years without stress. The food is delicious, the service is top-notch, and their team is always willing to go above and beyond. We&apos;ve seen a significant boost in staff morale and satisfaction since they took over the canteen. We couldn&apos;t be happier with the service they&apos;ve provided and would highly recommend them to anyone looking for a reliable and exceptional catering partner.',
+      content: 'SouthtownPlace Catering has been an absolute pleasure to work with! Their staff canteen services have been a game-changer for our team. They&apos;ve been catering for over 700 people daily for 4 years without stress. The food is delicious, the service is top-notch, and their team is always willing to go above and beyond. We&apos;ve seen a significant boost in staff morale and satisfaction since they took over the canteen. We couldn&apos;t be happier with the service they&apos;ve provided and would highly recommend them to anyone looking for a reliable and exceptional catering partner.',
       rating: 5
     },
     {
       name: 'Dr. Adebayo Ogunlesi',
       position: 'Operations Manager',
       company: 'NETCO',
-      content: 'South Place Catering has been our trusted partner for over 3 years. Their commitment to quality and reliability is unmatched. The team consistently delivers excellent service even in challenging offshore environments.',
+      content: 'SouthtownPlace Catering has been our trusted partner for over 3 years. Their commitment to quality and reliability is unmatched. The team consistently delivers excellent service even in challenging offshore environments.',
       rating: 5
     },
     {
       name: 'Mrs. Fatima Bello',
       position: 'HR Director',
       company: 'Lekki Free Port Terminal',
-      content: 'The professionalism and attention to detail shown by South Place Catering is exceptional. Our employees are always satisfied with the meal quality and service delivery.',
+      content: 'The professionalism and attention to detail shown by SouthtownPlace Catering is exceptional. Our employees are always satisfied with the meal quality and service delivery.',
       rating: 5
     },
     {
       name: 'Eng. Michael Okoro',
       position: 'Project Manager',
       company: '4mation Drilling Services',
-      content: 'Working with South Place Catering has significantly improved our workforce satisfaction. Their scalable solutions perfectly match our operational needs.',
+      content: 'Working with SouthtownPlace Catering has significantly improved our workforce satisfaction. Their scalable solutions perfectly match our operational needs.',
       rating: 5
     }
   ];

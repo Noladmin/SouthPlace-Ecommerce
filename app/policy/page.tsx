@@ -82,7 +82,7 @@ export default function Policy() {
               <span className="text-gray-800">Policies</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
-              At South Place Catering Services, we are committed to transparency and protecting your rights. 
+              At SouthtownPlace Catering Services, we are committed to transparency and protecting your rights. 
               Please review our policies to understand how we handle your information and govern our services.
             </p>
           </motion.div>

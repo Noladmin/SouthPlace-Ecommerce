@@ -199,7 +199,7 @@ export default function AdminLoginPage() {
           <div className="mx-auto w-20 h-20 bg-orange-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-600/20">
             <Shield className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">South Place Admin</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">SouthtownPlace Admin</h1>
         </motion.div>
 
         <Card className="shadow-2xl border-0 rounded-3xl overflow-hidden backdrop-blur-sm bg-white/90">
@@ -354,7 +354,7 @@ export default function AdminLoginPage() {
           className="text-center mt-8"
         >
           <p className="text-xs text-gray-500">
-            © 2025 South Place. All rights reserved.
+            © 2025 SouthtownPlace. All rights reserved.
           </p>
         </motion.div>
       </motion.div>

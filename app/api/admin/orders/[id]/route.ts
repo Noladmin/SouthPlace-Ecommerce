@@ -1,38 +1,49 @@
 import { NextRequest, NextResponse } from "next/server"
-import { verifyToken } from "@/lib/services/jwt-service"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
 import { emailService } from "@/lib/services/email-service"
 import type { OrderStatus } from "@/lib/types"
+import { verifyAdminAuth } from "@/lib/services/admin-auth"
 
 // Validation schema for order updates
 const updateOrderSchema = z.object({
-  status: z.enum(["PENDING", "CONFIRMED", "PREPARING", "READY", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"]),
+  status: z.enum(["PENDING", "CONFIRMED", "PREPARING", "WAITING_FOR_PICKUP", "PICKED_UP", "READY", "OUT_FOR_DELIVERY", "DELIVERED", "DELIVERY_FAILED", "CANCELLED"]),
   whatsappSent: z.boolean().optional(),
 })
 
-// Helper function to verify admin authentication
-const verifyAdminAuth = async (request: NextRequest) => {
-  const token = request.cookies.get("admin-token")?.value
-  
-  if (!token) {
-    return { success: false, message: "No token provided", status: 401 }
+const STATUS_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
+  PENDING: ["CONFIRMED", "CANCELLED"],
+  CONFIRMED: ["PREPARING", "CANCELLED"],
+  PREPARING: ["WAITING_FOR_PICKUP", "READY", "CANCELLED"],
+  READY: ["WAITING_FOR_PICKUP", "CANCELLED"],
+  WAITING_FOR_PICKUP: ["PICKED_UP", "CANCELLED"],
+  PICKED_UP: ["OUT_FOR_DELIVERY", "DELIVERY_FAILED", "CANCELLED"],
+  OUT_FOR_DELIVERY: ["DELIVERED", "DELIVERY_FAILED"],
+  DELIVERY_FAILED: ["WAITING_FOR_PICKUP", "CANCELLED"],
+}
+
+const buildStatusTimestampUpdate = (status: OrderStatus) => {
+  const now = new Date()
+  switch (status) {
+    case "CONFIRMED":
+      return { confirmedAt: now }
+    case "PREPARING":
+      return { preparingAt: now }
+    case "WAITING_FOR_PICKUP":
+      return { waitingForPickupAt: now }
+    case "PICKED_UP":
+      return { pickedUpAt: now }
+    case "OUT_FOR_DELIVERY":
+      return { outForDeliveryAt: now }
+    case "DELIVERED":
+      return { deliveredAt: now }
+    case "DELIVERY_FAILED":
+      return { deliveryFailedAt: now }
+    case "CANCELLED":
+      return { cancelledAt: now }
+    default:
+      return {}
   }
-
-  const tokenResult = verifyToken(token)
-  if (!tokenResult.valid || !tokenResult.payload) {
-    return { success: false, message: "Invalid token", status: 401 }
-  }
-
-  const admin = await prisma.admin.findUnique({
-    where: { id: tokenResult.payload.id },
-  })
-
-  if (!admin || !admin.isActive) {
-    return { success: false, message: "Admin not found or inactive", status: 401 }
-  }
-
-  return { success: true, admin }
 }
 
 // GET - Fetch single order with details
@@ -58,6 +69,11 @@ export async function GET(
             menuItem: true,
             extras: true,
           },
+        },
+        customer: true,
+        activeDeliveryAssignment: true,
+        deliveryAssignments: {
+          orderBy: { createdAt: "desc" },
         },
       },
     })
@@ -112,13 +128,24 @@ export async function PUT(
 
     const body = await request.json()
     const validatedData = updateOrderSchema.parse(body)
+    const requestedStatus = validatedData.status === "READY" ? "WAITING_FOR_PICKUP" : validatedData.status
 
-    // Update order
+    if (existingOrder.status !== requestedStatus) {
+      const allowedTransitions = STATUS_TRANSITIONS[existingOrder.status as OrderStatus] || []
+      if (!allowedTransitions.includes(requestedStatus)) {
+        return NextResponse.json(
+          { success: false, error: `Invalid status transition from ${existingOrder.status} to ${requestedStatus}` },
+          { status: 400 }
+        )
+      }
+    }
+
     const order = await prisma.order.update({
       where: { id },
       data: {
-        status: validatedData.status,
+        status: requestedStatus,
         whatsappSent: validatedData.whatsappSent,
+        ...buildStatusTimestampUpdate(requestedStatus),
         updatedAt: new Date(),
       },
       include: {
@@ -127,6 +154,11 @@ export async function PUT(
             menuItem: true,
             extras: true,
           },
+        },
+        customer: true,
+        activeDeliveryAssignment: true,
+        deliveryAssignments: {
+          orderBy: { createdAt: "desc" },
         },
       },
     })
@@ -144,12 +176,12 @@ export async function PUT(
       deliveryFee: parseFloat((existingOrder as any).deliveryFee?.toString?.() || "0"),
     }
 
-    if (validatedData.status === "DELIVERED") {
+    if (requestedStatus === "DELIVERED") {
       emailService.sendOrderDelivered(orderData).catch(error => {
         console.error("Failed to send delivered email:", error)
       })
     } else {
-      emailService.sendOrderStatusUpdate(orderData, validatedData.status).catch(error => {
+      emailService.sendOrderStatusUpdate(orderData, requestedStatus).catch(error => {
         console.error("Failed to send status update email:", error)
       })
     }

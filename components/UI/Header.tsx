@@ -94,7 +94,7 @@ export default function Header() {
             <Link href="/" className="flex items-center">
               <Image
                 src="/images/SouthLogo.png"
-                alt="South Place Catering Services"
+                alt="SouthtownPlace Catering Services"
                 width={80}
                 height={40}
                 className="object-contain"
@@ -316,7 +316,7 @@ export default function Header() {
                     <div className="flex items-center space-x-3">
                       <Image
                         src="/images/SouthLogo.png"
-                        alt="South Place"
+                        alt="SouthtownPlace"
                         width={50}
                         height={50}
                         className="object-contain"
@@ -495,7 +495,7 @@ export default function Header() {
                   {/* Footer */}
                   <div className="border-t border-gray-200 p-6 mt-4">
                     <p className="text-sm text-gray-500 text-center">
-                      © 2025 South Place Catering Services
+                      © 2025 SouthtownPlace Catering Services
                     </p>
                   </div>
                 </motion.div>

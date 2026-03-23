@@ -96,7 +96,7 @@ export default function Careers() {
             </div>
             <h2 className="text-5xl font-light text-gray-900 mb-6 tracking-wide">
               <span className="text-orange-500 font-medium">Why Join</span>{' '}
-              <span className="text-gray-800">South Place Catering?</span>
+              <span className="text-gray-800">SouthtownPlace Catering?</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
               We&apos;re building a team of passionate professionals who are committed to delivering exceptional service 
@@ -136,7 +136,7 @@ export default function Careers() {
                 <span className="text-gray-800">Culture</span>
               </h3>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed font-light">
-                At South Place Catering, we believe in fostering a positive work environment where every team member 
+                At SouthtownPlace Catering, we believe in fostering a positive work environment where every team member 
                 can thrive and contribute to our collective success. We value diversity, innovation, and continuous improvement.
               </p>
               <ul className="space-y-3">

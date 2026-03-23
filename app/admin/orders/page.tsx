@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   Table,
   TableBody,
@@ -32,6 +33,7 @@ import {
 import {
   Search,
   Filter,
+  Bike,
   Eye,
   MoreHorizontal,
   Download,
@@ -46,15 +48,18 @@ import AdminLayout from "@/components/admin-layout"
 import ConfirmationDialog from "@/components/admin/confirmation-dialog"
 import SuccessModal from "@/components/admin/success-modal"
 import { TableSkeleton } from "@/components/ui/table-skeleton"
-import type { Order, OrderStatus } from "@/lib/types"
+import type { Order, OrderStatus, Rider } from "@/lib/types"
 
 const statusColors: Record<OrderStatus, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
   CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
   PREPARING: "bg-orange-50 text-orange-700 border-orange-200",
+  WAITING_FOR_PICKUP: "bg-green-50 text-green-700 border-green-200",
+  PICKED_UP: "bg-indigo-50 text-indigo-700 border-indigo-200",
   READY: "bg-green-50 text-green-700 border-green-200",
   OUT_FOR_DELIVERY: "bg-purple-50 text-purple-700 border-purple-200",
   DELIVERED: "bg-orange-50 text-orange-700 border-orange-200",
+  DELIVERY_FAILED: "bg-red-50 text-red-700 border-red-200",
   CANCELLED: "bg-red-50 text-red-700 border-red-200",
 }
 
@@ -62,9 +67,12 @@ const statusIcons: Record<OrderStatus, any> = {
   PENDING: AlertCircle,
   CONFIRMED: CheckCircle,
   PREPARING: Clock,
+  WAITING_FOR_PICKUP: CheckCircle,
+  PICKED_UP: Truck,
   READY: CheckCircle,
   OUT_FOR_DELIVERY: Truck,
   DELIVERED: CheckCircle,
+  DELIVERY_FAILED: XCircle,
   CANCELLED: XCircle,
 }
 
@@ -80,6 +88,16 @@ export default function OrderManagementPage() {
   const [orderToUpdate, setOrderToUpdate] = useState<{ id: string; status: OrderStatus } | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false)
+  const [assignmentOrder, setAssignmentOrder] = useState<Order | null>(null)
+  const [riders, setRiders] = useState<Rider[]>([])
+  const [assignmentType, setAssignmentType] = useState<"INTERNAL" | "THIRD_PARTY">("INTERNAL")
+  const [selectedRiderId, setSelectedRiderId] = useState("")
+  const [thirdPartyForm, setThirdPartyForm] = useState({
+    riderName: "",
+    riderPhone: "",
+    riderEmail: "",
+  })
   const router = useRouter()
   const { toast } = useToast()
 
@@ -91,7 +109,7 @@ export default function OrderManagementPage() {
     try {
       const params = new URLSearchParams()
       if (searchTerm) params.append("search", searchTerm)
-      if (selectedStatus) params.append("status", selectedStatus)
+      if (selectedStatus && selectedStatus !== "ALL") params.append("status", selectedStatus)
       if (dateFrom) params.append("dateFrom", dateFrom)
       if (dateTo) params.append("dateTo", dateTo)
 
@@ -207,6 +225,58 @@ export default function OrderManagementPage() {
     })
   }
 
+  const openAssignmentModal = async (order: Order) => {
+    setAssignmentOrder(order)
+    setAssignmentType("INTERNAL")
+    setSelectedRiderId("")
+    setThirdPartyForm({ riderName: "", riderPhone: "", riderEmail: "" })
+    setIsAssignmentModalOpen(true)
+
+    try {
+      const response = await fetch("/api/admin/riders")
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to load riders")
+      setRiders((result.data || []).filter((rider: Rider) => rider.isActive))
+    } catch (error) {
+      console.error("Error loading riders:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load riders",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const assignRider = async () => {
+    if (!assignmentOrder) return
+
+    try {
+      const payload = assignmentType === "INTERNAL"
+        ? { assignmentType, riderId: selectedRiderId }
+        : { assignmentType, ...thirdPartyForm }
+
+      const response = await fetch(`/api/admin/orders/${assignmentOrder.id}/assignment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to assign rider")
+
+      setIsAssignmentModalOpen(false)
+      setAssignmentOrder(null)
+      setSuccessMessage(`Rider assigned to order #${assignmentOrder.orderNumber}.`)
+      setShowSuccessModal(true)
+      fetchOrders()
+    } catch (error: any) {
+      toast({
+        title: "Assignment error",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -255,9 +325,11 @@ export default function OrderManagementPage() {
                     <SelectItem value="PENDING">Pending</SelectItem>
                     <SelectItem value="CONFIRMED">Confirmed</SelectItem>
                     <SelectItem value="PREPARING">Preparing</SelectItem>
-                    <SelectItem value="READY">Ready</SelectItem>
+                    <SelectItem value="WAITING_FOR_PICKUP">Waiting for Pickup</SelectItem>
+                    <SelectItem value="PICKED_UP">Picked Up</SelectItem>
                     <SelectItem value="OUT_FOR_DELIVERY">Out for Delivery</SelectItem>
                     <SelectItem value="DELIVERED">Delivered</SelectItem>
+                    <SelectItem value="DELIVERY_FAILED">Delivery Failed</SelectItem>
                     <SelectItem value="CANCELLED">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
@@ -392,21 +464,27 @@ export default function OrderManagementPage() {
                                   </DropdownMenuItem>
                                 )}
                                 {order.status === 'PREPARING' && (
-                                  <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'READY')}>
+                                  <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'WAITING_FOR_PICKUP')}>
                                     <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-                                    Mark Ready
+                                    Ready for Pickup
                                   </DropdownMenuItem>
                                 )}
-                                {order.status === 'READY' && (
+                                {(order.status === 'WAITING_FOR_PICKUP' || order.status === 'READY') && (
+                                  <DropdownMenuItem onClick={() => openAssignmentModal(order)}>
+                                    <Truck className="mr-2 h-4 w-4 text-purple-600" />
+                                    Assign Rider
+                                  </DropdownMenuItem>
+                                )}
+                                {order.status === 'PICKED_UP' && (
                                   <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'OUT_FOR_DELIVERY')}>
                                     <Truck className="mr-2 h-4 w-4 text-purple-600" />
-                                    Out for Delivery
+                                    Start Delivery
                                   </DropdownMenuItem>
                                 )}
                                 {order.status === 'OUT_FOR_DELIVERY' && (
-                                  <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'DELIVERED')}>
-                                    <CheckCircle className="mr-2 h-4 w-4 text-orange-600" />
-                                    Mark Delivered
+                                  <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'DELIVERY_FAILED')}>
+                                    <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                                    Mark Failed
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
@@ -444,6 +522,68 @@ export default function OrderManagementPage() {
         autoClose={true}
         autoCloseDelay={3000}
       />
+
+      <Dialog open={isAssignmentModalOpen} onOpenChange={setIsAssignmentModalOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Assign Rider</DialogTitle>
+            <DialogDescription>
+              {assignmentOrder ? `Order #${assignmentOrder.orderNumber}` : "Assign a rider to this order."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Assignment type</label>
+              <Select value={assignmentType} onValueChange={(value: "INTERNAL" | "THIRD_PARTY") => setAssignmentType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INTERNAL">Internal rider</SelectItem>
+                  <SelectItem value="THIRD_PARTY">Third-party rider</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {assignmentType === "INTERNAL" ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Choose rider</label>
+                <Select value={selectedRiderId} onValueChange={setSelectedRiderId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a registered rider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {riders.map((rider) => (
+                      <SelectItem key={rider.id} value={rider.id}>
+                        {rider.name} · {rider.phone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                <Input placeholder="Rider name" value={thirdPartyForm.riderName} onChange={(e) => setThirdPartyForm((prev) => ({ ...prev, riderName: e.target.value }))} />
+                <Input placeholder="Rider phone" value={thirdPartyForm.riderPhone} onChange={(e) => setThirdPartyForm((prev) => ({ ...prev, riderPhone: e.target.value }))} />
+                <Input placeholder="Rider email" value={thirdPartyForm.riderEmail} onChange={(e) => setThirdPartyForm((prev) => ({ ...prev, riderEmail: e.target.value }))} className="md:col-span-2" />
+              </div>
+            )}
+
+            <Button
+              onClick={assignRider}
+              disabled={
+                (assignmentType === "INTERNAL" && !selectedRiderId) ||
+                (assignmentType === "THIRD_PARTY" && (!thirdPartyForm.riderName || !thirdPartyForm.riderPhone || !thirdPartyForm.riderEmail))
+              }
+              className="w-full bg-orange-600 hover:bg-orange-700"
+            >
+              <Bike className="mr-2 h-4 w-4" />
+              Save Assignment
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   )
 }

@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Send test email
     const testResult = await emailService.sendEmail(
       testEmail,
-      "🧪 South Place Email Test",
+      "🧪 SouthtownPlace Email Test",
       `
         <!DOCTYPE html>
         <html>
@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
               <h1>🧪 Email Test Successful</h1>
             </div>
             <div class="content">
-              <p class="success">✅ South Place email system is working correctly!</p>
-              <p>This is a test email sent from the South Place admin system.</p>
+              <p class="success">✅ SouthtownPlace email system is working correctly!</p>
+              <p>This is a test email sent from the SouthtownPlace admin system.</p>
               <p><strong>Test Details:</strong></p>
               <ul>
                 <li>Sent at: ${new Date().toLocaleString()}</li>

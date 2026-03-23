@@ -20,7 +20,7 @@ const orderConfirmationSchema = z.object({
     deliveryAddress: z.string().min(1, "Delivery address is required"),
     deliveryCity: z.string().min(1, "Delivery city is required"),
     specialInstructions: z.string().optional(),
-    deliveryMethod: z.enum(["standard", "express"]),
+    deliveryMethod: z.enum(["standard", "express", "self_pickup"]),
     paymentMethod: z.enum(["stripe", "paystack"]),
     customerId: z.string().optional(),
     items: z.array(z.object({
@@ -63,6 +63,13 @@ export async function POST(request: NextRequest) {
     if (paymentProvider !== orderData.paymentMethod) {
       return NextResponse.json(
         { success: false, error: "Payment method mismatch" },
+        { status: 400 }
+      )
+    }
+
+    if (orderData.deliveryMethod === "self_pickup" && orderData.deliveryFee !== 0) {
+      return NextResponse.json(
+        { success: false, error: "Self pickup orders must have zero delivery fee" },
         { status: 400 }
       )
     }
@@ -143,7 +150,7 @@ export async function POST(request: NextRequest) {
         deliveryAddress: orderData.deliveryAddress,
         deliveryCity: orderData.deliveryCity,
         specialInstructions: orderData.specialInstructions || null,
-        deliveryMethod: orderData.deliveryMethod === "express" ? "EXPRESS" : "STANDARD",
+        deliveryMethod: orderData.deliveryMethod === "self_pickup" ? "SELF_PICKUP" : orderData.deliveryMethod === "express" ? "EXPRESS" : "STANDARD",
         paymentMethod: paymentProvider.toUpperCase(),
         subtotal: orderData.subtotal,
         deliveryFee: orderData.deliveryFee,
@@ -237,7 +244,7 @@ export async function POST(request: NextRequest) {
           quantity: ex.quantity,
         })),
       })),
-      estimatedDelivery: order.deliveryMethod === "EXPRESS" ? "30-45 minutes" : "45-60 minutes",
+      estimatedDelivery: order.deliveryMethod === "SELF_PICKUP" ? "Pickup when ready" : order.deliveryMethod === "EXPRESS" ? "30-45 minutes" : "45-60 minutes",
     }
 
     emailService.sendNewOrderNotification(emailOrderData).catch((error) => {
@@ -294,4 +301,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }
-
