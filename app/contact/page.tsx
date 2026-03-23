@@ -65,19 +65,19 @@ export default function Contact() {
     {
       icon: FaPhone,
       title: 'Phone',
-      details: ['+234-806-779-3091', '+234-703-878-3877', '+234-907-376-1968'],
+      details: ['09014796559'],
       description: 'Call us for immediate assistance'
     },
     {
       icon: FaEnvelope,
       title: 'Email',
-      details: ['southplacecatering@gmail.com'],
+      details: ['southplacecatering@gmail.com', 'Info.southtownplace@gmail.com'],
       description: 'Send us an email anytime'
     },
     {
       icon: FaMapMarkerAlt,
-      title: 'Corporate Address Lagos',
-      details: ['8A Oluwakayode Jacobs, Lekki Phase 1, Lagos, Nigeria'],
+      title: 'Branch in Lagos',
+      details: ['8A Oluwakayode Jacobs Street, Lekki Phase 1, Lagos, Nigeria'],
       description: 'Visit our corporate office location'
     },
     {

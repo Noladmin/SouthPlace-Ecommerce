@@ -120,21 +120,22 @@ export default function Footer() {
               <div className="flex items-center space-x-3">
                 <FaPhone className="text-orange-500" />
                 <div className="flex flex-col">
-                  <span className="text-gray-300 text-sm">+234-806-779-3091</span>
-                  <span className="text-gray-300 text-sm">+234-703-878-3877</span>
-                  <span className="text-gray-300 text-sm">+234-907-376-1968</span>
+                  <span className="text-gray-300 text-sm">09014796559</span>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <FaEnvelope className="text-orange-500" />
-                <span className="text-gray-300 text-sm">southplacecatering@gmail.com</span>
+                <div className="flex flex-col">
+                  <span className="text-gray-300 text-sm">southplacecatering@gmail.com</span>
+                  <span className="text-gray-300 text-sm">Info.southtownplace@gmail.com</span>
+                </div>
               </div>
               <div className="flex items-start space-x-3">
                 <FaMapMarkerAlt className="text-orange-500 mt-1" />
                 <div className="flex flex-col">
-                  <span className="text-gray-300 text-sm font-semibold mb-1">Corporate Address Lagos:</span>
+                  <span className="text-gray-300 text-sm font-semibold mb-1">Branch in Lagos:</span>
                   <span className="text-gray-300 text-sm">
-                    8A Oluwakayode Jacobs,<br />
+                    8A Oluwakayode Jacobs Street,<br />
                     Lekki Phase 1, Lagos, Nigeria
                   </span>
                 </div>
