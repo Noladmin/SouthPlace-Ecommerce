@@ -5,7 +5,7 @@ import { verifyDeliverySessionToken, verifyDeliveryCode } from "@/lib/services/d
 import { emailService } from "@/lib/services/email-service"
 
 const actionSchema = z.object({
-  action: z.enum(["PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"]),
+  action: z.enum(["PICKED_UP", "DELIVERED"]),
   code: z.string().optional(),
 })
 
@@ -51,17 +51,13 @@ export async function POST(
     const now = new Date()
     const assignmentData =
       validated.action === "PICKED_UP"
-        ? { status: "PICKED_UP" as const, pickedUpAt: now }
-        : validated.action === "OUT_FOR_DELIVERY"
-          ? { status: "OUT_FOR_DELIVERY" as const, outForDeliveryAt: now }
-          : { status: "DELIVERED" as const, deliveredAt: now, isActive: false }
+        ? { status: "OUT_FOR_DELIVERY" as const, pickedUpAt: now, outForDeliveryAt: now }
+        : { status: "DELIVERED" as const, deliveredAt: now, isActive: false }
 
     const orderStatus =
       validated.action === "PICKED_UP"
-        ? "PICKED_UP"
-        : validated.action === "OUT_FOR_DELIVERY"
-          ? "OUT_FOR_DELIVERY"
-          : "DELIVERED"
+        ? "OUT_FOR_DELIVERY"
+        : "DELIVERED"
 
     const updated = await prisma.$transaction(async (tx) => {
       const updatedAssignment = await tx.deliveryAssignment.update({
@@ -83,7 +79,7 @@ export async function POST(
           status: orderStatus,
           activeDeliveryAssignmentId: validated.action === "DELIVERED" ? null : id,
           pickedUpAt: validated.action === "PICKED_UP" ? now : undefined,
-          outForDeliveryAt: validated.action === "OUT_FOR_DELIVERY" ? now : undefined,
+          outForDeliveryAt: validated.action === "PICKED_UP" ? now : undefined,
           deliveredAt: validated.action === "DELIVERED" ? now : undefined,
         },
       })

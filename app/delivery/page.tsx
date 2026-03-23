@@ -36,7 +36,7 @@ export default function DeliveryPage() {
     loadAssignment()
   }, [])
 
-  const submitAction = async (action: "PICKED_UP" | "OUT_FOR_DELIVERY" | "DELIVERED") => {
+  const submitAction = async (action: "PICKED_UP" | "DELIVERED") => {
     if (!assignment) return
     setIsSubmitting(true)
     try {
@@ -130,20 +130,12 @@ export default function DeliveryPage() {
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-3">
               <Button
-                disabled={isSubmitting || ["PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"].includes(assignment.order.status)}
+                disabled={isSubmitting || ["OUT_FOR_DELIVERY", "DELIVERED"].includes(assignment.order.status)}
                 onClick={() => submitAction("PICKED_UP")}
                 className="bg-orange-600 hover:bg-orange-700"
               >
                 <Clock className="mr-2 h-4 w-4" />
                 Confirm Pickup
-              </Button>
-              <Button
-                disabled={isSubmitting || !["PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"].includes(assignment.order.status)}
-                onClick={() => submitAction("OUT_FOR_DELIVERY")}
-                variant="outline"
-              >
-                <Truck className="mr-2 h-4 w-4" />
-                Start Delivery
               </Button>
             </div>
 
@@ -163,7 +155,7 @@ export default function DeliveryPage() {
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />
-                  Verify and Complete
+                  Confirm Delivery
                 </Button>
               </div>
             </div>

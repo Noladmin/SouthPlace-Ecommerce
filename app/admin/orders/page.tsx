@@ -475,12 +475,6 @@ export default function OrderManagementPage() {
                                     Assign Rider
                                   </DropdownMenuItem>
                                 )}
-                                {order.status === 'PICKED_UP' && (
-                                  <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'OUT_FOR_DELIVERY')}>
-                                    <Truck className="mr-2 h-4 w-4 text-purple-600" />
-                                    Start Delivery
-                                  </DropdownMenuItem>
-                                )}
                                 {order.status === 'OUT_FOR_DELIVERY' && (
                                   <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'DELIVERY_FAILED')}>
                                     <XCircle className="mr-2 h-4 w-4 text-red-600" />

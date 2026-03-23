@@ -471,11 +471,6 @@ export default function SingleOrderPage() {
                       <MessageSquare className="h-4 w-4 mr-2" /> Resend Customer Code
                     </Button>
                   )}
-                  {order.status === 'PICKED_UP' && (
-                    <Button onClick={() => updateOrderStatus('OUT_FOR_DELIVERY')} className="bg-purple-600 hover:bg-purple-700 text-white">
-                      <Truck className="h-4 w-4 mr-2" /> Start Delivery
-                    </Button>
-                  )}
                   {order.status === 'OUT_FOR_DELIVERY' && (
                     <Button onClick={() => updateOrderStatus('DELIVERY_FAILED')} variant="destructive">
                       <XCircle className="h-4 w-4 mr-2" /> Mark Delivery Failed
