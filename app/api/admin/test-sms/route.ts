@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send test SMS
-    const fromLabel = process.env.BULKSMS_SENDER_ID || process.env.SMS_SENDER_ID || "Not configured"
+    const fromLabel = process.env.TERMII_SENDER_ID || process.env.SMS_SENDER_ID || "N-Alert"
     const testMessage = `SouthtownPlace SMS Test\nGateway connection successful.\nSent: ${new Date().toLocaleString()}\nFrom: ${fromLabel}\nTo: ${testPhone}\nStatus: OK`
     
     const testResult = await smsService.sendSMS(testPhone, testMessage)

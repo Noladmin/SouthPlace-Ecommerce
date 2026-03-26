@@ -86,10 +86,12 @@ A modern, full-stack ecommerce and management system built with Next.js, featuri
    ADMIN_PASSWORD="your-admin-password"
    ORDERS_NOTIFY_EMAIL="admin@southplace-catering.com"
 
-   # Twilio SMS Configuration (optional)
-   TWILIO_ACCOUNT_SID="your-twilio-account-sid"
-   TWILIO_AUTH_TOKEN="your-twilio-auth-token"
-   TWILIO_PHONE_NUMBER="+234..."
+   # SMS Configuration (Termii)
+   TERMII_BASE_URL="https://v3.api.termii.com"
+   TERMII_API_KEY="your-termii-api-key"
+   TERMII_SENDER_ID="N-Alert"
+   TERMII_CHANNEL="dnd"
+   SMS_SENDER_ID="N-Alert"
    ADMIN_PHONE="+234..."
    # Alternative: ORDERS_NOTIFY_PHONE="+234..."
 
@@ -188,20 +190,21 @@ Configure your Resend settings in `.env.local` for email functionality.
 
 ## 📱 SMS Configuration
 
-The system uses Twilio for SMS notifications:
+The system uses Termii for SMS notifications.
 
 - **Order notifications** for admin when new orders are placed
 
 To enable SMS notifications:
 
-1. Create a Twilio account and get your credentials
+1. Create or open your Termii account and copy your account-specific base URL and API key from the Termii dashboard
 2. Set the following environment variables in `.env.local`:
-   - `TWILIO_ACCOUNT_SID`: Your Twilio Account SID
-   - `TWILIO_AUTH_TOKEN`: Your Twilio Auth Token
-   - `TWILIO_PHONE_NUMBER`: Your Twilio phone number (sender)
+   - `TERMII_BASE_URL`: Your Termii account base URL
+   - `TERMII_API_KEY`: Your Termii API key
+   - `TERMII_SENDER_ID`: Sender ID. For your Nigeria DND route this should stay `N-Alert`
+   - `TERMII_CHANNEL`: Route channel. For your activated route this should stay `dnd`
    - `ADMIN_PHONE` or `ORDERS_NOTIFY_PHONE`: Admin phone number (recipient)
 
-SMS notifications are sent asynchronously alongside email notifications and will gracefully fail if credentials are not configured.
+The current integration sends through Termii’s Messaging API using the `dnd` channel by default and expects approved content/sender formatting for Nigeria.
 
 ## 🔄 Database Migrations
 

@@ -96,7 +96,7 @@ export default function AdminSMSPage() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">SMS Reports</h1>
-            <p className="text-gray-500 mt-1">Track message delivery from BulkSMS Nigeria.</p>
+            <p className="text-gray-500 mt-1">Track message delivery from Termii.</p>
           </div>
           <Button onClick={fetchReports} disabled={refreshing} variant="outline">
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
@@ -144,7 +144,7 @@ export default function AdminSMSPage() {
         <Card className="border-gray-100 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Recent Delivery Reports</CardTitle>
-            <CardDescription>Latest records from SMS delivery-report endpoint.</CardDescription>
+            <CardDescription>Latest records from the Termii message history endpoint.</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (

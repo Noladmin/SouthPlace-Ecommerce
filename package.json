@@ -7,8 +7,6 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "sms:test": "node scripts/test-bulksms.js",
-    "sms:check": "node scripts/check-sms-delivery.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "postinstall": "prisma generate"
@@ -74,7 +72,6 @@
     "stripe": "^20.1.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "twilio": "^5.11.1",
     "vaul": "^1.1.2",
     "zod": "^4.2.1"
   },
