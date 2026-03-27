@@ -69,6 +69,7 @@ export default function ContactPageClient() {
               <h3 className="text-xl font-bold mb-3 font-display text-gray-900">Call Us</h3>
               <p className="text-gray-500 mb-4 text-sm">Our friendly team is here to help.</p>
               <p className="text-2xl font-bold text-orange-600">09014796559</p>
+              <p className="text-2xl font-bold text-orange-600">07038783877</p>
               <div className="mt-6 pt-6 border-t border-gray-100">
                 <p className="text-gray-400 text-sm flex items-center">
                   <Clock className="h-4 w-4 mr-2" />
