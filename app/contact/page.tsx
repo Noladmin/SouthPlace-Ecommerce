@@ -66,19 +66,26 @@ export default function Contact() {
       icon: FaPhone,
       title: 'Phone',
       details: ['09014796559'],
+      details: ['07038783877'],
       description: 'Call us for immediate assistance'
     },
     {
       icon: FaEnvelope,
       title: 'Email',
-      details: ['southplacecatering@gmail.com', 'Info.southtownplace@gmail.com'],
+      details: ['southtownplace@gmail.com', 'Info.southtownplace@gmail.com'],
       description: 'Send us an email anytime'
     },
     {
       icon: FaMapMarkerAlt,
-      title: 'Branch in Lagos',
+      title: 'Corporate Office',
       details: ['8A Oluwakayode Jacobs Street, Lekki Phase 1, Lagos, Nigeria'],
       description: 'Visit our corporate office location'
+    },
+    {
+      icon: FaMapMarkerAlt,
+      title: 'Branch in Lagos',
+      details: ['No3 Kunsela Road, Ikate Elegushi, Lagos, Nigeria'],
+      description: 'Visit our Branch location'
     },
     {
       icon: FaMapMarkerAlt,
