@@ -65,8 +65,13 @@ export default function Contact() {
     {
       icon: FaPhone,
       title: 'Phone',
-      details: ['09014796559'],
       details: ['07038783877'],
+      description: 'Call us for immediate assistance'
+    },
+     {
+      icon: FaPhone,
+      title: 'Phone',
+      details: ['09014796559'],
       description: 'Call us for immediate assistance'
     },
     {
