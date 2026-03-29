@@ -43,7 +43,7 @@ export default function Hero({
   stats = []
 }: HeroProps) {
   return (
-      <section className={`relative ${showButtons ? 'min-h-[600px] md:h-screen' : 'h-[60vh]'} flex items-center overflow-hidden`}>
+      <section className={`relative ${showButtons ? 'min-h-[720px] lg:min-h-screen py-24 md:py-28' : 'min-h-[60vh] py-20'} flex items-center overflow-hidden`}>
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         {backgroundImages && backgroundImages.length > 0 ? (
@@ -64,10 +64,10 @@ export default function Hero({
 
       {/* Content Container */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-12 xl:px-16 relative z-20">
-        <div className={`flex flex-col ${showStats ? 'lg:grid lg:grid-cols-2 gap-8 lg:gap-12' : ''} items-center`}>
+        <div className={`flex flex-col ${showStats ? 'lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] gap-10 lg:gap-14' : ''} items-center lg:items-center`}>
           
           {/* Text Content */}
-          <div className={`text-white ${!showStats ? 'text-center mx-auto max-w-4xl' : 'text-center lg:text-left w-full'}`}>
+          <div className={`text-white ${!showStats ? 'text-center mx-auto max-w-4xl' : 'text-center lg:text-left w-full max-w-3xl'}`}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -84,11 +84,11 @@ export default function Hero({
                 </motion.p>
               )}
               
-              <motion.h1
+                <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className={`font-bold mb-6 leading-tight ${showStats ? 'text-4xl md:text-6xl lg:text-7xl' : 'text-4xl md:text-6xl'}`}
+                className={`font-bold mb-6 leading-[1.05] ${showStats ? 'text-4xl md:text-5xl lg:text-6xl xl:text-7xl' : 'text-4xl md:text-6xl'}`}
               >
                 {title}
               </motion.h1>
@@ -98,7 +98,7 @@ export default function Hero({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.6 }}
-                  className={`text-lg md:text-xl text-gray-200 mb-8 ${!showStats && 'max-w-3xl mx-auto'}`}
+                  className={`text-lg md:text-xl text-gray-200 mb-8 ${!showStats ? 'max-w-3xl mx-auto' : 'max-w-2xl lg:mx-0'}`}
                 >
                   {description}
                 </motion.p>
@@ -137,7 +137,7 @@ export default function Hero({
 
           {/* Statistics Cards (Bento Grid) */}
           {showStats && stats.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mt-8 lg:mt-0 w-full max-w-md sm:max-w-2xl lg:max-w-none">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mt-10 lg:mt-0 w-full max-w-md sm:max-w-2xl lg:max-w-none self-stretch lg:self-center">
               {stats.map((stat, index) => (
                 <motion.div
                   key={index}
