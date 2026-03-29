@@ -60,17 +60,9 @@ export async function POST(
         : "DELIVERED"
 
     const updated = await prisma.$transaction(async (tx) => {
-      const updatedAssignment = await tx.deliveryAssignment.update({
+      await tx.deliveryAssignment.update({
         where: { id },
         data: assignmentData,
-        include: {
-          order: {
-            include: {
-              items: { include: { extras: true } },
-            },
-          },
-          rider: true,
-        },
       })
 
       await tx.order.update({
@@ -84,7 +76,17 @@ export async function POST(
         },
       })
 
-      return updatedAssignment
+      return tx.deliveryAssignment.findUnique({
+        where: { id },
+        include: {
+          order: {
+            include: {
+              items: { include: { extras: true } },
+            },
+          },
+          rider: true,
+        },
+      })
     })
 
     if (validated.action === "DELIVERED" && assignment.order.customerEmail) {
@@ -103,7 +105,13 @@ export async function POST(
       })
     }
 
-    return NextResponse.json({ success: true, data: updated, message: "Delivery updated successfully" })
+    return NextResponse.json({
+      success: true,
+      data: updated,
+      message: validated.action === "PICKED_UP"
+        ? "Pickup confirmed. The order is now out for delivery."
+        : "Delivery completed successfully.",
+    })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: "Validation error", details: error.issues }, { status: 400 })
