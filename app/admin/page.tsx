@@ -276,7 +276,7 @@ export default function AdminDashboardPage() {
                         </CardContent>
                       </Card>
 
-                      <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push("/admin/users")}>
                         <CardHeader>
                           <CardTitle className="flex items-center">
                             <Users className="h-5 w-5 mr-2" />

@@ -29,6 +29,16 @@ export interface OTPVerificationResult {
   user?: Admin
 }
 
+const ADMIN_ROLES: Role[] = ["SUPER_ADMIN_USER", "ADMIN_USER"]
+
+export const isAdminRole = (role?: string | null): boolean => {
+  return !!role && ADMIN_ROLES.includes(role as Role)
+}
+
+export const isSuperAdmin = (admin?: Pick<Admin, "role"> | null): boolean => {
+  return admin?.role === "SUPER_ADMIN_USER"
+}
+
 /**
  * Authenticates admin user with email and password
  */
@@ -272,6 +282,13 @@ export const createAdmin = async (data: {
     }
   } catch (error) {
     console.error("Admin creation error:", error)
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return {
+        success: false,
+        message: "An admin with that email already exists",
+      }
+    }
+
     return {
       success: false,
       message: "Failed to create admin",
@@ -337,8 +354,7 @@ export const verifyAdminAuth = async (
     }
 
     // Check if role is any admin role
-    const adminRoles = ['admin', 'SUPER_ADMIN_USER', 'ADMIN_USER']
-    if (!adminRoles.includes(decoded.role)) {
+    if (!isAdminRole(decoded.role)) {
       return { success: false, error: "Invalid admin role" }
     }
 
@@ -363,6 +379,32 @@ export const verifyAdminAuth = async (
   } catch (error) {
     console.error("Admin auth verification error:", error)
     return { success: false, error: "Authentication failed" }
+  }
+}
+
+export const requireSuperAdmin = async (
+  request: Request
+): Promise<{ success: boolean; admin?: Admin; error?: string; status?: number }> => {
+  const auth = await verifyAdminAuth(request)
+  if (!auth.success || !auth.admin) {
+    return {
+      success: false,
+      error: auth.error || "Unauthorized",
+      status: 401,
+    }
+  }
+
+  if (!isSuperAdmin(auth.admin)) {
+    return {
+      success: false,
+      error: "Forbidden",
+      status: 403,
+    }
+  }
+
+  return {
+    success: true,
+    admin: auth.admin,
   }
 }
 

@@ -19,6 +19,7 @@ import {
   Eye,
   MessageSquare,
   Bike,
+  UserCog,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -80,6 +81,12 @@ const navigationItems = [
     title: "Riders",
     href: "/admin/riders",
     icon: Bike,
+  },
+  {
+    title: "Admin Users",
+    href: "/admin/users",
+    icon: UserCog,
+    roles: ["SUPER_ADMIN_USER"],
   },
   {
     title: "Settings",
@@ -174,7 +181,9 @@ export default function AdminLayout({ children, adminUser }: AdminLayoutProps) {
 
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-            {navigationItems.map((item) => {
+            {navigationItems
+              .filter((item) => !item.roles || !adminUser || item.roles.includes(adminUser.role))
+              .map((item) => {
               const Icon = item.icon
               const active = isActive(item.href)
 

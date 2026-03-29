@@ -366,130 +366,144 @@ export default function AdminExtrasPage() {
         </Card>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-h-[90vh] w-[95vw] max-w-3xl overflow-hidden p-0">
             <DialogHeader>
-              <DialogTitle>{isEditing ? "Edit Extras Group" : "Create Extras Group"}</DialogTitle>
+              <div className="border-b border-gray-100 px-6 py-4">
+                <DialogTitle>{isEditing ? "Edit Extras Group" : "Create Extras Group"}</DialogTitle>
+              </div>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Group Name</Label>
-                  <Input value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Rules (Min / Max)</Label>
-                  <div className="flex gap-3">
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.minSelections}
-                      onChange={(e) => setFormData(prev => ({ ...prev, minSelections: e.target.value }))}
-                      placeholder="Min"
-                    />
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.maxSelections}
-                      onChange={(e) => setFormData(prev => ({ ...prev, maxSelections: e.target.value }))}
-                      placeholder="Max (0 = no limit)"
-                    />
+            <form onSubmit={handleSubmit} className="flex max-h-[calc(90vh-72px)] flex-col">
+              <div className="flex-1 overflow-y-auto px-6 py-5">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Group Name</Label>
+                      <Input value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Rules (Min / Max)</Label>
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={formData.minSelections}
+                          onChange={(e) => setFormData(prev => ({ ...prev, minSelections: e.target.value }))}
+                          placeholder="Min"
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          value={formData.maxSelections}
+                          onChange={(e) => setFormData(prev => ({ ...prev, maxSelections: e.target.value }))}
+                          placeholder="Max (0 = no limit)"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} />
-              </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} />
+                  </div>
 
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <Switch checked={formData.isGlobal} onCheckedChange={(c) => setFormData(prev => ({ ...prev, isGlobal: c }))} />
-                  <Label>Global (applies to all menu items)</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch checked={formData.isActive} onCheckedChange={(c) => setFormData(prev => ({ ...prev, isActive: c }))} />
-                  <Label>Active</Label>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label>Extras Items</Label>
-                  <Button type="button" variant="secondary" onClick={addItem}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Item
-                  </Button>
-                </div>
-                {formData.items.length === 0 && (
-                  <p className="text-sm text-gray-500">No items yet. Add at least one extra.</p>
-                )}
-                {formData.items.map((item, index) => (
-                  <div key={item.clientKey} className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr_2fr_auto] gap-3 items-center">
-                    <Input
-                      placeholder="Item name"
-                      value={item.name}
-                      onChange={(e) => handleItemChange(index, "name", e.target.value)}
-                    />
-                    <Input
-                      placeholder="Price"
-                      type="number"
-                      step="0.01"
-                      value={item.price}
-                      onChange={(e) => handleItemChange(index, "price", e.target.value)}
-                    />
+                  <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
                     <div className="flex items-center gap-2">
-                      <Input
-                        placeholder="Image URL (optional)"
-                        value={item.imageUrl}
-                        onChange={(e) => handleItemChange(index, "imageUrl", e.target.value)}
-                      />
-                      <input
-                        id={`extra-upload-${index}`}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleItemImageUpload(index, e)}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => document.getElementById(`extra-upload-${index}`)?.click()}
-                        disabled={uploadingItemIndex === index}
-                        className="shrink-0"
-                      >
-                        {uploadingItemIndex === index ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4" />
-                        )}
+                      <Switch checked={formData.isGlobal} onCheckedChange={(c) => setFormData(prev => ({ ...prev, isGlobal: c }))} />
+                      <Label>Global (applies to all menu items)</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch checked={formData.isActive} onCheckedChange={(c) => setFormData(prev => ({ ...prev, isActive: c }))} />
+                      <Label>Active</Label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <Label>Extras Items</Label>
+                      <Button type="button" variant="secondary" onClick={addItem} className="w-full sm:w-auto">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Item
                       </Button>
-                      {item.imageUrl && (
-                        <div className="relative h-10 w-10 overflow-hidden rounded-md border border-gray-200 bg-gray-100">
-                          <Image
-                            src={item.imageUrl}
-                            alt={item.name || "Extra image"}
-                            fill
-                            sizes="40px"
-                            className="object-cover"
-                          />
+                    </div>
+                    {formData.items.length === 0 && (
+                      <p className="text-sm text-gray-500">No items yet. Add at least one extra.</p>
+                    )}
+                    <div className="space-y-3">
+                      {formData.items.map((item, index) => (
+                        <div key={item.clientKey} className="rounded-lg border border-gray-200 p-3 sm:p-4">
+                          <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.1fr_180px]">
+                            <Input
+                              placeholder="Item name"
+                              value={item.name}
+                              onChange={(e) => handleItemChange(index, "name", e.target.value)}
+                            />
+                            <Input
+                              placeholder="Price"
+                              type="number"
+                              step="0.01"
+                              value={item.price}
+                              onChange={(e) => handleItemChange(index, "price", e.target.value)}
+                            />
+                          </div>
+
+                          <div className="mt-3 flex flex-col gap-3 xl:flex-row xl:items-center">
+                            <div className="flex-1">
+                              <Input
+                                placeholder="Image URL (optional)"
+                                value={item.imageUrl}
+                                onChange={(e) => handleItemChange(index, "imageUrl", e.target.value)}
+                              />
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <input
+                                id={`extra-upload-${index}`}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleItemImageUpload(index, e)}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => document.getElementById(`extra-upload-${index}`)?.click()}
+                                disabled={uploadingItemIndex === index}
+                                className="shrink-0"
+                              >
+                                {uploadingItemIndex === index ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Upload className="h-4 w-4" />
+                                )}
+                              </Button>
+                              {item.imageUrl && (
+                                <div className="relative h-10 w-10 overflow-hidden rounded-md border border-gray-200 bg-gray-100">
+                                  <Image
+                                    src={item.imageUrl}
+                                    alt={item.name || "Extra image"}
+                                    fill
+                                    sizes="40px"
+                                    className="object-cover"
+                                  />
+                                </div>
+                              )}
+                              <div className="ml-0 flex items-center gap-2 xl:ml-2">
+                                <Switch
+                                  checked={item.isActive}
+                                  onCheckedChange={(c) => handleItemChange(index, "isActive", c)}
+                                />
+                                <Button type="button" variant="ghost" onClick={() => removeItem(index)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={item.isActive}
-                        onCheckedChange={(c) => handleItemChange(index, "isActive", c)}
-                      />
-                      <Button type="button" variant="ghost" onClick={() => removeItem(index)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      ))}
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
-
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex flex-col-reverse gap-3 border-t border-gray-100 px-6 py-4 sm:flex-row sm:justify-end">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
