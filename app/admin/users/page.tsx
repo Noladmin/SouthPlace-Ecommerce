@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, type FormEvent } from "react"
-import { Shield, UserCog, UserPlus, Power, RefreshCw } from "lucide-react"
+import { Shield, UserCog, UserPlus, Power, RefreshCw, MoreHorizontal, Mail, Trash2 } from "lucide-react"
 import AdminLayout from "@/components/admin-layout"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -22,6 +22,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import ConfirmationDialog from "@/components/admin/confirmation-dialog"
 
 type AdminRole = "SUPER_ADMIN_USER" | "ADMIN_USER"
 
@@ -32,6 +41,7 @@ type ManagedAdmin = {
   role: AdminRole
   phone?: string | null
   isActive: boolean
+  mustChangePassword: boolean
   lastLogin?: string | null
   createdAt: string
   updatedAt: string
@@ -46,6 +56,23 @@ const emptyForm = {
 
 function roleLabel(role: AdminRole) {
   return role === "SUPER_ADMIN_USER" ? "Super Admin" : "Admin"
+}
+
+function getAccountState(admin: ManagedAdmin): "INVITED" | "ACTIVE" | "INACTIVE" {
+  if (!admin.isActive) return "INACTIVE"
+  if (admin.mustChangePassword && !admin.lastLogin) return "INVITED"
+  return "ACTIVE"
+}
+
+function accountStateLabel(state: ReturnType<typeof getAccountState>) {
+  switch (state) {
+    case "INVITED":
+      return "Invited"
+    case "INACTIVE":
+      return "Inactive"
+    default:
+      return "Active"
+  }
 }
 
 function formatDate(value?: string | null) {
@@ -72,6 +99,8 @@ export default function AdminUsersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [rowActionId, setRowActionId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<ManagedAdmin | null>(null)
   const [form, setForm] = useState(emptyForm)
 
   useEffect(() => {
@@ -162,6 +191,7 @@ export default function AdminUsersPage() {
   }
 
   const updateAdmin = async (id: string, payload: { role?: AdminRole; isActive?: boolean }) => {
+    setRowActionId(id)
     try {
       const response = await fetch(`/api/admin/users/${id}`, {
         method: "PATCH",
@@ -187,6 +217,67 @@ export default function AdminUsersPage() {
         description: error.message || "Could not update admin user",
         variant: "destructive",
       })
+    } finally {
+      setRowActionId(null)
+    }
+  }
+
+  const resendInvite = async (admin: ManagedAdmin) => {
+    setRowActionId(admin.id)
+    try {
+      const response = await fetch(`/api/admin/users/${admin.id}`, {
+        method: "POST",
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to resend invite")
+      }
+
+      toast({
+        title: "Invite resent",
+        description: data.message || `Temporary login details were emailed to ${admin.email}.`,
+      })
+      await loadAdmins()
+    } catch (error: any) {
+      toast({
+        title: "Resend failed",
+        description: error.message || "Could not resend invite",
+        variant: "destructive",
+      })
+    } finally {
+      setRowActionId(null)
+    }
+  }
+
+  const deleteAdmin = async () => {
+    if (!deleteTarget) return
+
+    setRowActionId(deleteTarget.id)
+    try {
+      const response = await fetch(`/api/admin/users/${deleteTarget.id}`, {
+        method: "DELETE",
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete admin user")
+      }
+
+      toast({
+        title: "Admin deleted",
+        description: data.message || `${deleteTarget.email} was removed.`,
+      })
+      setDeleteTarget(null)
+      await loadAdmins()
+    } catch (error: any) {
+      toast({
+        title: "Delete failed",
+        description: error.message || "Could not delete admin user",
+        variant: "destructive",
+      })
+    } finally {
+      setRowActionId(null)
     }
   }
 
@@ -205,6 +296,10 @@ export default function AdminUsersPage() {
   if (adminUser.role !== "SUPER_ADMIN_USER") {
     return null
   }
+
+  const invitedCount = admins.filter((admin) => getAccountState(admin) === "INVITED").length
+  const activeCount = admins.filter((admin) => getAccountState(admin) === "ACTIVE").length
+  const superAdminCount = admins.filter((admin) => admin.role === "SUPER_ADMIN_USER" && admin.isActive).length
 
   return (
     <AdminLayout adminUser={adminUser}>
@@ -296,6 +391,30 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
+        <div className="grid gap-3 md:grid-cols-3">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-sm text-gray-500">Active admins</div>
+              <div className="mt-1 text-3xl font-semibold text-gray-900">{activeCount}</div>
+              <p className="mt-1 text-xs text-gray-500">Admins currently able to access the back office.</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-sm text-gray-500">Pending invites</div>
+              <div className="mt-1 text-3xl font-semibold text-gray-900">{invitedCount}</div>
+              <p className="mt-1 text-xs text-gray-500">Accounts that still need first sign-in and password change.</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-sm text-gray-500">Active super admins</div>
+              <div className="mt-1 text-3xl font-semibold text-gray-900">{superAdminCount}</div>
+              <p className="mt-1 text-xs text-gray-500">Server safeguards prevent removing the last one.</p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -328,15 +447,18 @@ export default function AdminUsersPage() {
                 ) : (
                   admins.map((admin) => {
                     const isSelf = admin.id === adminUser.id
+                    const isBusy = rowActionId === admin.id
+                    const accountState = getAccountState(admin)
                     const nextRole: AdminRole =
                       admin.role === "SUPER_ADMIN_USER" ? "ADMIN_USER" : "SUPER_ADMIN_USER"
 
                     return (
-                      <TableRow key={admin.id}>
+                      <TableRow key={admin.id} className="hover:bg-gray-50/60">
                         <TableCell>
                           <div className="font-medium text-gray-900">{admin.name}</div>
                           <div className="text-xs text-gray-500">{admin.email}</div>
                           {admin.phone ? <div className="text-xs text-gray-400">{admin.phone}</div> : null}
+                          {isSelf ? <div className="mt-1 text-xs font-medium text-orange-600">Your account</div> : null}
                         </TableCell>
                         <TableCell>
                           <Badge variant={admin.role === "SUPER_ADMIN_USER" ? "default" : "secondary"}>
@@ -344,33 +466,63 @@ export default function AdminUsersPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={admin.isActive ? "outline" : "secondary"}>
-                            {admin.isActive ? "Active" : "Inactive"}
+                          <Badge
+                            variant={accountState === "ACTIVE" ? "outline" : "secondary"}
+                            className={
+                              accountState === "INVITED"
+                                ? "bg-blue-50 text-blue-700 hover:bg-blue-50"
+                                : undefined
+                            }
+                          >
+                            {accountStateLabel(accountState)}
                           </Badge>
+                          {accountState === "INVITED" ? (
+                            <div className="mt-1 text-xs text-gray-500">Waiting for first login</div>
+                          ) : null}
                         </TableCell>
                         <TableCell>{formatDate(admin.lastLogin)}</TableCell>
                         <TableCell>{formatDate(admin.createdAt)}</TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => void updateAdmin(admin.id, { role: nextRole })}
-                              disabled={isSelf}
-                            >
-                              <Shield className="mr-2 h-4 w-4" />
-                              {admin.role === "SUPER_ADMIN_USER" ? "Make admin" : "Make super"}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => void updateAdmin(admin.id, { isActive: !admin.isActive })}
-                              disabled={isSelf}
-                            >
-                              <Power className="mr-2 h-4 w-4" />
-                              {admin.isActive ? "Deactivate" : "Activate"}
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0" disabled={isBusy}>
+                                <span className="sr-only">Open actions</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>{admin.name}</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => void updateAdmin(admin.id, { role: nextRole })} disabled={isSelf}>
+                                <Shield className="mr-2 h-4 w-4" />
+                                {admin.role === "SUPER_ADMIN_USER" ? "Make admin" : "Make super admin"}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => void updateAdmin(admin.id, { isActive: !admin.isActive })} disabled={isSelf}>
+                                <Power className="mr-2 h-4 w-4" />
+                                {admin.isActive ? "Deactivate account" : "Activate account"}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => void resendInvite(admin)} disabled={isSelf}>
+                                <Mail className="mr-2 h-4 w-4" />
+                                Resend invite
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => setDeleteTarget(admin)}
+                                disabled={isSelf}
+                                className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete admin
+                              </DropdownMenuItem>
+                              {isSelf ? (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuLabel className="max-w-56 text-xs font-normal text-gray-500">
+                                    Role changes, invite resend, and delete are unavailable on your own account.
+                                  </DropdownMenuLabel>
+                                </>
+                              ) : null}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     )
@@ -381,6 +533,22 @@ export default function AdminUsersPage() {
           </CardContent>
         </Card>
       </div>
+      <ConfirmationDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}
+        title="Delete admin user?"
+        message={
+          deleteTarget
+            ? `This will permanently remove ${deleteTarget.name} (${deleteTarget.email}) from the admin team.`
+            : ""
+        }
+        confirmText="Delete admin"
+        variant="destructive"
+        onConfirm={() => void deleteAdmin()}
+        isLoading={!!deleteTarget && rowActionId === deleteTarget.id}
+      />
     </AdminLayout>
   )
 }

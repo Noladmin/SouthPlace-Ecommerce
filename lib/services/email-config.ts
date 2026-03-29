@@ -9,6 +9,20 @@ export interface ResendConfig {
   replyTo?: string
 }
 
+const DEFAULT_FROM_NAME = "SouthTown Place"
+
+function formatFromAddress(from?: string | null): string {
+  const normalized = from?.trim()
+  if (!normalized) return "noreply@tastybowls.com"
+
+  // Respect an explicitly formatted sender like `Name <email@example.com>`.
+  if (normalized.includes("<") && normalized.includes(">")) {
+    return normalized
+  }
+
+  return `${DEFAULT_FROM_NAME} <${normalized}>`
+}
+
 export function getResendConfig(): ResendConfig | null {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM
@@ -24,13 +38,13 @@ export function getResendConfig(): ResendConfig | null {
 
   return {
     apiKey,
-    from,
+    from: formatFromAddress(from),
     replyTo: process.env.RESEND_REPLY_TO_EMAIL || process.env.BUSINESS_EMAIL,
   }
 }
 
 export function getEmailFromAddress(): string {
-  return (
+  return formatFromAddress(
     process.env.RESEND_FROM_EMAIL ||
     process.env.EMAIL_FROM ||
     "noreply@tastybowls.com"
