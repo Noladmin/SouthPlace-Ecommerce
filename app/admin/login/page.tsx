@@ -132,10 +132,10 @@ export default function AdminLoginPage() {
         setIsRedirecting(true)
         toast({
           title: "Login Successful",
-          description: "Redirecting to dashboard...",
+          description: result.requiresPasswordChange ? "Redirecting to password setup..." : "Redirecting to dashboard...",
         })
         // Keep loading state true while redirecting
-        router.push("/admin/dashboard")
+        router.push(result.requiresPasswordChange ? "/admin/change-password" : "/admin/dashboard")
       } else {
         setIsLoading(false) // Only turn off loading on error
         let errorMessage = result.error || "Invalid OTP. Please try again."
@@ -173,6 +173,51 @@ export default function AdminLoginPage() {
     setShowOTP(false)
     setOtpForm({ otp: "" })
     setUserEmail("")
+  }
+
+  const handleResendOTP = async () => {
+    if (!loginForm.email || !loginForm.password) {
+      toast({
+        title: "Session expired",
+        description: "Please sign in again to request a new OTP.",
+        variant: "destructive",
+      })
+      setShowOTP(false)
+      setUserEmail("")
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch("/api/auth/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginForm),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to resend OTP")
+      }
+
+      setOtpForm({ otp: "" })
+      toast({
+        title: "OTP Resent",
+        description: "A new 6-digit verification code has been sent.",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Resend Failed",
+        description: error.message || "Could not resend OTP. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -285,12 +330,6 @@ export default function AdminLoginPage() {
             ) : (
               // OTP Form
               <form onSubmit={handleOTPVerification} className="space-y-5">
-                <div className="text-center mb-6 p-4 bg-orange-50 rounded-xl">
-                  <p className="text-sm text-gray-700">
-                    Code sent to <span className="font-semibold text-orange-700">{userEmail}</span>
-                  </p>
-                </div>
-
                 <div className="space-y-2">
                   <label htmlFor="otp" className="text-sm font-medium text-gray-700">
                     Verification Code
@@ -336,6 +375,8 @@ export default function AdminLoginPage() {
                 <div className="text-center pt-2">
                   <button
                     type="button"
+                    onClick={handleResendOTP}
+                    disabled={isLoading}
                     className="text-sm text-gray-600 hover:text-orange-600 transition-colors"
                   >
                     Didn't receive the code? <span className="font-medium">Resend</span>
@@ -354,7 +395,7 @@ export default function AdminLoginPage() {
           className="text-center mt-8"
         >
           <p className="text-xs text-gray-500">
-            © 2025 South Town Place. All rights reserved.
+            © {new Date().getFullYear()} South Town Place. All rights reserved.
           </p>
         </motion.div>
       </motion.div>

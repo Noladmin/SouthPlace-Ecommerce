@@ -1,38 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-import { verifyToken } from "@/lib/services/jwt-service"
 import { prisma } from "@/lib/db"
-
-// Helper function to verify admin authentication
-const verifyAdminAuth = async (request: NextRequest) => {
-  const token = request.cookies.get("admin-token")?.value
-
-  if (!token) {
-    return { success: false, message: "No token provided", status: 401 }
-  }
-
-  const tokenResult = verifyToken(token)
-  if (!tokenResult.valid || !tokenResult.payload) {
-    return { success: false, message: "Invalid token", status: 401 }
-  }
-
-  const admin = await prisma.admin.findUnique({
-    where: { id: tokenResult.payload.id },
-  })
-
-  if (!admin || !admin.isActive) {
-    return { success: false, message: "Admin not found or inactive", status: 401 }
-  }
-
-  return { success: true, admin }
-}
+import { requireAdminPermission } from "@/lib/services/auth-service"
 
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await verifyAdminAuth(request)
+    const authResult = await requireAdminPermission(request, "view_analytics")
     if (!authResult.success) {
       return NextResponse.json(
-        { error: authResult.message },
-        { status: authResult.status }
+        { error: authResult.error },
+        { status: authResult.status || 403 }
       )
     }
 

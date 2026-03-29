@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Prisma } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "@/lib/db"
 import { createAdmin, requireSuperAdmin } from "@/lib/services/auth-service"
+import { emailService } from "@/lib/services/email-service"
+import { generateSecurePassword } from "@/lib/services/password-service"
 import type { Role } from "@/lib/types"
 
 export const dynamic = "force-dynamic"
@@ -11,7 +12,6 @@ export const revalidate = 0
 const adminCreateSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
   email: z.string().trim().email("A valid email address is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
   phone: z.string().trim().optional().or(z.literal("")),
   role: z.enum(["SUPER_ADMIN_USER", "ADMIN_USER"]),
 })
@@ -66,13 +66,15 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const input = adminCreateSchema.parse(body)
+    const temporaryPassword = generateSecurePassword(14)
 
     const result = await createAdmin({
       name: input.name,
       email: input.email,
-      password: input.password,
+      password: temporaryPassword,
       phone: input.phone || undefined,
       role: input.role as Role,
+      mustChangePassword: true,
     })
 
     if (!result.success || !result.admin) {
@@ -82,10 +84,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const emailResult = await emailService.sendAdminInvitation({
+      name: result.admin.name,
+      email: result.admin.email,
+      role: result.admin.role,
+      temporaryPassword,
+    })
+
+    if (!emailResult.success) {
+      await prisma.admin.delete({ where: { id: result.admin.id } }).catch((error) => {
+        console.error("Admin rollback after invitation email failure:", error)
+      })
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: emailResult.error || "Failed to email temporary password to the new admin",
+        },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json(
       {
         success: true,
-        message: "Admin user created successfully",
+        message: "Admin user created successfully and temporary password emailed",
         data: result.admin,
       },
       { status: 201 }
@@ -95,13 +118,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: error.issues[0]?.message || "Invalid input data" },
         { status: 400 }
-      )
-    }
-
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return NextResponse.json(
-        { success: false, error: "An admin with that email already exists" },
-        { status: 409 }
       )
     }
 

@@ -84,12 +84,35 @@ const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 export default function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
+  const [isAuthorized, setIsAuthorized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [dateRange, setDateRange] = useState("30")
   const router = useRouter()
 
   useEffect(() => {
-    fetchAnalytics()
+    const bootstrap = async () => {
+      try {
+        const authResponse = await fetch("/api/auth/admin/me", { cache: "no-store" })
+        if (!authResponse.ok) {
+          router.push("/admin/login")
+          return
+        }
+
+        const authData = await authResponse.json()
+        if (authData.admin?.role !== "SUPER_ADMIN_USER") {
+          router.push("/admin/dashboard")
+          return
+        }
+
+        setIsAuthorized(true)
+        await fetchAnalytics()
+      } catch (error) {
+        console.error("Analytics auth error:", error)
+        router.push("/admin/dashboard")
+      }
+    }
+
+    void bootstrap()
   }, [dateRange])
 
   const fetchAnalytics = async () => {
@@ -196,7 +219,7 @@ export default function AnalyticsPage() {
     }))
   }
 
-  if (isLoading) {
+  if (isLoading || !isAuthorized) {
     return (
       <AdminLayout>
         <div className="space-y-8">

@@ -79,10 +79,17 @@ export default function AdminDashboardPage() {
     checkAuthAndLoadData()
   }, [])
 
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
   const checkAuthAndLoadData = async () => {
     try {
       // Check if admin is authenticated
-      const authResponse = await fetch("/api/auth/admin/me")
+      let authResponse = await fetch("/api/auth/admin/me", { cache: "no-store" })
+
+      if (!authResponse.ok) {
+        await wait(250)
+        authResponse = await fetch("/api/auth/admin/me", { cache: "no-store" })
+      }
 
       if (!authResponse.ok) {
         router.push("/admin/login")
@@ -90,6 +97,10 @@ export default function AdminDashboardPage() {
       }
 
       const authData = await authResponse.json()
+      if (authData.admin?.mustChangePassword) {
+        router.push("/admin/change-password")
+        return
+      }
       setAdminUser(authData.admin)
 
       // Load dashboard stats

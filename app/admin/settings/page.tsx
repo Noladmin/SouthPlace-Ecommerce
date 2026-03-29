@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import AdminLayout from "@/components/admin-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -20,8 +21,11 @@ import {
   Loader2,
   Percent
 } from "lucide-react"
+import type { Admin } from "@/lib/types"
 
 export default function AdminSettingsPage() {
+  const router = useRouter()
+  const [adminUser, setAdminUser] = useState<Admin | null>(null)
   const [activeTab, setActiveTab] = useState("delivery")
   const [deliveryFees, setDeliveryFees] = useState({ standard: "", express: "" })
   const [vatSettings, setVatSettings] = useState({ enabled: false, rate: "" })
@@ -39,6 +43,18 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     const load = async () => {
       try {
+        const authRes = await fetch("/api/auth/admin/me", { cache: "no-store" })
+        if (!authRes.ok) {
+          router.push("/admin/login")
+          return
+        }
+        const authData = await authRes.json()
+        if (authData.admin?.role !== "SUPER_ADMIN_USER") {
+          router.push("/admin/dashboard")
+          return
+        }
+        setAdminUser(authData.admin)
+
         const [deliveryRes, vatRes] = await Promise.all([
           fetch("/api/admin/settings/delivery-fee"),
           fetch("/api/admin/settings/vat")
@@ -66,7 +82,7 @@ export default function AdminSettingsPage() {
       }
     }
     load()
-  }, [])
+  }, [router])
 
   const saveDeliveryFees = async () => {
     setIsSaving(true)
@@ -120,7 +136,7 @@ export default function AdminSettingsPage() {
   ]
 
   return (
-    <AdminLayout>
+    <AdminLayout adminUser={adminUser}>
       <div className="max-w-6xl mx-auto space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Settings</h1>

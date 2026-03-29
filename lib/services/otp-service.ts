@@ -1,5 +1,6 @@
 import type { OTPType } from "@/lib/types"
 import { sendEmailViaProvider } from "./email-provider"
+import { getAppBaseUrl } from "@/lib/app-url"
 
 export interface OTPResponse {
   success: boolean
@@ -109,25 +110,26 @@ const getOTPEmailSubject = (type: OTPType): string => {
  */
 const generateOTPEmailTemplate = (otp: string, type: OTPType): string => {
   const title = getOTPEmailSubject(type)
+  const appUrl = getAppBaseUrl()
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px;">
       <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <div style="text-align: center; margin-bottom: 30px;">
-          <img src="${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ""}/images/SouthLogo.png" alt="SouthtownPlace" style="height: 60px; width: auto;">
+          <img src="${appUrl}/images/SouthLogo.png" alt="SouthtownPlace" style="height: 60px; width: auto;">
         </div>
         
-        <h2 style="color: #387237; text-align: center; margin-bottom: 20px;">${title}</h2>
+        <h2 style="color: #c2410c; text-align: center; margin-bottom: 20px;">${title}</h2>
         
         <p style="color: #666; font-size: 16px; text-align: center; margin-bottom: 30px;">
           Please enter the following verification code to continue:
         </p>
         
-        <div style="background: linear-gradient(135deg, #387237, #4a8a4a); padding: 25px; text-align: center; border-radius: 10px; margin-bottom: 30px;">
+        <div style="background: linear-gradient(135deg, #c2410c, #ea580c); padding: 25px; text-align: center; border-radius: 10px; margin-bottom: 30px;">
           <h1 style="color: white; font-size: 36px; margin: 0; letter-spacing: 8px; font-weight: bold;">${otp}</h1>
         </div>
         
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #387237;">
+        <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; border-left: 4px solid #ea580c;">
           <p style="color: #666; font-size: 14px; margin: 0;">
             <strong>Security Notice:</strong> This code will expire in ${OTP_CONFIG.expiryMinutes} minutes. 
             Do not share this code with anyone. If you didn't request this code, please ignore this email.
@@ -135,7 +137,7 @@ const generateOTPEmailTemplate = (otp: string, type: OTPType): string => {
         </div>
         
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-          <p style="color: #999; font-size: 12px;">
+          <p style="color: #9a3412; font-size: 12px;">
             SouthtownPlace Lagos<br>
             Authentic African Cuisine & Catering
           </p>

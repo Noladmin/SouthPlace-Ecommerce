@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
+import { requireAdminPermission } from "@/lib/services/auth-service"
 
 const STANDARD_KEY = "deliveryFee.standard"
 const EXPRESS_KEY = "deliveryFee.express"
@@ -25,13 +26,23 @@ async function getFeesFromDb(): Promise<{ standard: number; express: number }> {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await requireAdminPermission(request, "manage_settings")
+  if (!auth.success) {
+    return NextResponse.json({ success: false, error: auth.error || "Unauthorized" }, { status: auth.status || 403 })
+  }
+
   const fees = await getFeesFromDb()
   return NextResponse.json({ success: true, data: fees }, { status: 200 })
 }
 
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await requireAdminPermission(request, "manage_settings")
+    if (!auth.success) {
+      return NextResponse.json({ success: false, error: auth.error || "Unauthorized" }, { status: auth.status || 403 })
+    }
+
     const body = await request.json().catch(() => ({}))
     const next: { standard?: number; express?: number } = {}
     if (body.standard !== undefined) {
@@ -76,5 +87,4 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }
-
 

@@ -1,5 +1,6 @@
 import { getEmailFromAddress } from "./email-config"
 import { sendEmailViaProvider, testEmailProviderConnection, type EmailSendResult } from "./email-provider"
+import { getAppBaseUrl } from "@/lib/app-url"
 
 interface WelcomeEmailPayload {
   name: string
@@ -28,6 +29,13 @@ interface DeliveryCodeEmailPayload {
   customerName: string
   orderNumber: string
   code: string
+}
+
+interface AdminInvitationEmailPayload {
+  name: string
+  email: string
+  role: string
+  temporaryPassword: string
 }
 
 export interface OrderEmailPayload {
@@ -60,7 +68,7 @@ function formatCurrencyNGN(amount: number): string {
 }
 
 function baseEmailLayout(title: string, bodyHtml: string): string {
-  const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ""
+  const baseUrl = getAppBaseUrl()
   return `
   <!DOCTYPE html>
   <html>
@@ -72,7 +80,7 @@ function baseEmailLayout(title: string, bodyHtml: string): string {
   <body style="font-family: Arial, sans-serif; background:#f6f7fb; color:#111; margin:0; padding:24px;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px; margin:0 auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
       <tr>
-        <td style="background:linear-gradient(135deg,#387237,#4a8a4a); padding:20px 24px; color:#fff;">
+        <td style="background:linear-gradient(135deg,#c2410c,#ea580c); padding:20px 24px; color:#fff;">
           <div style="display:flex; align-items:center; gap:12px;">
             <img src="${baseUrl}/images/SouthLogo.png" alt="SouthtownPlace" width="36" height="36" style="border-radius:6px;" />
             <div style="font-size:18px; font-weight:700;">SouthtownPlace</div>
@@ -84,7 +92,7 @@ function baseEmailLayout(title: string, bodyHtml: string): string {
         <td style="padding:24px;">${bodyHtml}</td>
       </tr>
       <tr>
-        <td style="padding:16px 24px; background:#f8faf8; color:#61776b; font-size:12px;">
+        <td style="padding:16px 24px; background:#fff7ed; color:#9a3412; font-size:12px;">
           SouthtownPlace Lagos · Authentic African Cuisine & Catering
         </td>
       </tr>
@@ -138,6 +146,7 @@ async function testConnection(): Promise<{ success: boolean; error?: string }> {
 
 function buildWelcomeEmail(payload: WelcomeEmailPayload): { subject: string; html: string } {
   const subject = "Welcome to SouthtownPlace!"
+  const appUrl = getAppBaseUrl()
   const html = baseEmailLayout(
     "Welcome to SouthtownPlace",
     `
@@ -149,6 +158,10 @@ function buildWelcomeEmail(payload: WelcomeEmailPayload): { subject: string; htm
         ${payload.phone ? `<div style="font-size:14px; color:#374151;">Phone: ${payload.phone}</div>` : ""}
         ${payload.address ? `<div style="font-size:14px; color:#374151;">Address: ${payload.address}${payload.city ? ", " + payload.city : ""}</div>` : ""}
       </div>
+      <p style="margin:16px 0 0;">
+        <a href="${appUrl}" style="display:inline-block; padding:10px 16px; background:#ea580c; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:700;">Visit SouthtownPlace</a>
+      </p>
+      <p style="margin:12px 0 0; font-size:13px; color:#6b7280;">Website: <a href="${appUrl}" style="color:#c2410c; text-decoration:none;">${appUrl}</a></p>
       <p style="margin:16px 0 0;">If you didn't create this account, please ignore this email.</p>
     `
   )
@@ -244,7 +257,7 @@ function buildRiderAssignmentEmail(payload: RiderAssignmentEmailPayload): { subj
         <div style="font-size:14px; color:#374151; margin-top:6px;">Open the secure link below to view the delivery details.</div>
       </div>
       <p style="margin:16px 0 0;">
-        <a href="${payload.deliveryLink}" style="display:inline-block; padding:10px 16px; background:#387237; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:700;">Open delivery link</a>
+        <a href="${payload.deliveryLink}" style="display:inline-block; padding:10px 16px; background:#ea580c; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:700;">Open delivery link</a>
       </p>
       <p style="margin:16px 0 0; font-size:13px; color:#6b7280;">This link is for this assignment only.</p>
     `
@@ -259,11 +272,37 @@ function buildDeliveryCodeEmail(payload: DeliveryCodeEmailPayload): { subject: s
     `
       <p style="margin:0 0 12px;">Hi <strong>${payload.customerName}</strong>,</p>
       <p style="margin:0 0 12px;">Use this code only when your order arrives.</p>
-      <div style="background:linear-gradient(135deg,#387237,#4a8a4a); padding:24px; text-align:center; border-radius:10px; margin:18px 0;">
+      <div style="background:linear-gradient(135deg,#c2410c,#ea580c); padding:24px; text-align:center; border-radius:10px; margin:18px 0;">
         <div style="color:#ffffff; font-size:34px; letter-spacing:8px; font-weight:700;">${payload.code}</div>
       </div>
       <p style="margin:0; color:#374151;">Order: <strong>${payload.orderNumber}</strong></p>
       <p style="margin:12px 0 0; font-size:13px; color:#6b7280;">Share this code only with the rider when your food has been delivered to you.</p>
+    `
+  )
+  return { subject, html }
+}
+
+function buildAdminInvitationEmail(payload: AdminInvitationEmailPayload): { subject: string; html: string } {
+  const subject = "Your SouthtownPlace admin account is ready"
+  const appUrl = getAppBaseUrl()
+  const adminLoginUrl = `${appUrl}/admin/login`
+  const html = baseEmailLayout(
+    "Admin Account Created",
+    `
+      <p style="margin:0 0 12px;">Hi <strong>${payload.name}</strong>,</p>
+      <p style="margin:0 0 12px;">A SouthtownPlace admin account has been created for you.</p>
+      <div style="margin-top:16px; padding:12px 14px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+        <div style="font-weight:700; margin-bottom:6px;">Your sign-in details</div>
+        <div style="font-size:14px; color:#374151;">Email: ${payload.email}</div>
+        <div style="font-size:14px; color:#374151;">Role: ${payload.role.replace(/_/g, " ")}</div>
+        <div style="font-size:14px; color:#374151; margin-top:8px;">Temporary password:</div>
+        <div style="margin-top:8px; font-size:20px; letter-spacing:1px; font-weight:700; color:#111827;">${payload.temporaryPassword}</div>
+      </div>
+      <p style="margin:16px 0 0;">
+        <a href="${adminLoginUrl}" style="display:inline-block; padding:10px 16px; background:#ea580c; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:700;">Open Admin Login</a>
+      </p>
+      <p style="margin:12px 0 0; font-size:13px; color:#6b7280;">Admin login: <a href="${adminLoginUrl}" style="color:#c2410c; text-decoration:none;">${adminLoginUrl}</a></p>
+      <p style="margin:16px 0 0;">Use the temporary password to sign in. You will be required to change it immediately after your first login.</p>
     `
   )
   return { subject, html }
@@ -312,6 +351,12 @@ async function sendDeliveryCode(to: string, payload: DeliveryCodeEmailPayload): 
   return sendEmail(to, subject, html)
 }
 
+async function sendAdminInvitation(payload: AdminInvitationEmailPayload): Promise<EmailSendResult> {
+  if (!payload.email) return { success: false, error: "Missing admin email" }
+  const { subject, html } = buildAdminInvitationEmail(payload)
+  return sendEmail(payload.email, subject, html)
+}
+
 export const emailService = {
   testConnection,
   sendEmail,
@@ -322,4 +367,5 @@ export const emailService = {
   sendOrderStatusUpdate,
   sendRiderAssignmentLink,
   sendDeliveryCode,
+  sendAdminInvitation,
 }

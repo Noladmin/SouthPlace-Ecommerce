@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
       role: admin.role,
       name: admin.name,
       isActive: admin.isActive,
+      mustChangePassword: admin.mustChangePassword,
       lastLogin: admin.lastLogin,
       phone: admin.phone,
       twoFactorEnabled: admin.twoFactorEnabled,
@@ -103,12 +104,14 @@ export async function POST(request: NextRequest) {
     // Set HTTP-only cookie
     const response = NextResponse.json({
       success: true,
-      message: "Login successful",
+      message: admin.mustChangePassword ? "Password change required" : "Login successful",
+      requiresPasswordChange: admin.mustChangePassword,
       admin: {
         id: admin.id,
         email: admin.email,
         name: admin.name,
         role: admin.role,
+        mustChangePassword: admin.mustChangePassword,
       },
     })
 

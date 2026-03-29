@@ -82,6 +82,8 @@ export default function AdminDashboardPage() {
     return null
   }
 
+  const isSuperAdmin = user.role === "SUPER_ADMIN_USER"
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -240,59 +242,65 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push("/admin/settings")}>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Settings className="h-5 w-5 mr-2" />
-                System Settings
-              </CardTitle>
-              <CardDescription>
-                Configure business settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Business configuration</span>
-                <Settings className="h-4 w-4 text-gray-400" />
-              </div>
-            </CardContent>
-          </Card>
+          {isSuperAdmin && (
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push("/admin/settings")}>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="h-5 w-5 mr-2" />
+                  System Settings
+                </CardTitle>
+                <CardDescription>
+                  Configure business settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">Business configuration</span>
+                  <Settings className="h-4 w-4 text-gray-400" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-                                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push("/admin/analytics")}>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <BarChart3 className="h-5 w-5 mr-2" />
-                            Analytics Dashboard
-                          </CardTitle>
-                          <CardDescription>
-                            View business insights and metrics
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500">Business analytics</span>
-                            <BarChart3 className="h-4 w-4 text-gray-400" />
-                          </div>
-                        </CardContent>
-                      </Card>
+          {isSuperAdmin && (
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push("/admin/analytics")}>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2" />
+                  Analytics Dashboard
+                </CardTitle>
+                <CardDescription>
+                  View business insights and metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">Business analytics</span>
+                  <BarChart3 className="h-4 w-4 text-gray-400" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-                      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push("/admin/users")}>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Users className="h-5 w-5 mr-2" />
-                            Manage Admins
-                          </CardTitle>
-                          <CardDescription>
-                            Create and manage admin users
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500">Admin management</span>
-                            <Users className="h-4 w-4 text-gray-400" />
-                          </div>
-                        </CardContent>
-                      </Card>
+          {isSuperAdmin && (
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push("/admin/users")}>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="h-5 w-5 mr-2" />
+                  Manage Admins
+                </CardTitle>
+                <CardDescription>
+                  Create and manage admin users
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">Admin management</span>
+                  <Users className="h-4 w-4 text-gray-400" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Recent Activity */}

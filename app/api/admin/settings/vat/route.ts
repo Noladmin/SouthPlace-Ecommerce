@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
+import { requireAdminPermission } from "@/lib/services/auth-service"
 
 const VAT_ENABLED_KEY = "vat.enabled"
 const VAT_RATE_KEY = "vat.rate"
@@ -27,13 +28,23 @@ async function getVatFromDb(): Promise<{ enabled: boolean; rate: number }> {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await requireAdminPermission(request, "manage_settings")
+  if (!auth.success) {
+    return NextResponse.json({ success: false, error: auth.error || "Unauthorized" }, { status: auth.status || 403 })
+  }
+
   const vat = await getVatFromDb()
   return NextResponse.json({ success: true, data: vat }, { status: 200 })
 }
 
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await requireAdminPermission(request, "manage_settings")
+    if (!auth.success) {
+      return NextResponse.json({ success: false, error: auth.error || "Unauthorized" }, { status: auth.status || 403 })
+    }
+
     const body = await request.json().catch(() => ({}))
     const next: { enabled?: boolean; rate?: number } = {}
 

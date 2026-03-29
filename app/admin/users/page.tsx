@@ -40,7 +40,6 @@ type ManagedAdmin = {
 const emptyForm = {
   name: "",
   email: "",
-  password: "",
   phone: "",
   role: "ADMIN_USER" as AdminRole,
 }
@@ -90,9 +89,12 @@ export default function AdminUsersPage() {
       const authData = await authResponse.json()
       setAdminUser(authData.admin)
 
-      if (authData.admin?.role === "SUPER_ADMIN_USER") {
-        await loadAdmins()
+      if (authData.admin?.role !== "SUPER_ADMIN_USER") {
+        router.push("/admin/dashboard")
+        return
       }
+
+      await loadAdmins()
     } catch (error) {
       console.error("Admin users bootstrap error:", error)
       router.push("/admin/login")
@@ -145,7 +147,7 @@ export default function AdminUsersPage() {
       setIsCreateOpen(false)
       toast({
         title: "Admin created",
-        description: `${data.data?.name || "New admin"} can now log in.`,
+        description: `Temporary login details were emailed to ${data.data?.email || "the new admin"}.`,
       })
       await loadAdmins()
     } catch (error: any) {
@@ -200,7 +202,9 @@ export default function AdminUsersPage() {
     return null
   }
 
-  const isSuperAdmin = adminUser.role === "SUPER_ADMIN_USER"
+  if (adminUser.role !== "SUPER_ADMIN_USER") {
+    return null
+  }
 
   return (
     <AdminLayout adminUser={adminUser}>
@@ -212,199 +216,170 @@ export default function AdminUsersPage() {
               Create admin accounts and control who can manage the back office.
             </p>
           </div>
-          {isSuperAdmin && (
-            <div className="flex gap-2">
-              <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Create admin
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Create Admin User</DialogTitle>
-                    <DialogDescription>
-                      Add a trusted team member and assign the right admin role.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full name</Label>
-                      <Input
-                        id="name"
-                        value={form.name}
-                        onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                        placeholder="Ada Admin"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={form.email}
-                        onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                        placeholder="ada@example.com"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Temporary password</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={form.password}
-                        onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                        placeholder="Use a strong password"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        value={form.phone}
-                        onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
-                        placeholder="Optional"
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>Role</Label>
-                      <Select
-                        value={form.role}
-                        onValueChange={(value: AdminRole) => setForm((current) => ({ ...current, role: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ADMIN_USER">Admin</SelectItem>
-                          <SelectItem value="SUPER_ADMIN_USER">Super Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <DialogFooter className="md:col-span-2">
-                      <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} disabled={isSubmitting}>
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={isSubmitting}>
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        {isSubmitting ? "Creating..." : "Create admin"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-              <Button variant="outline" onClick={() => void loadAdmins()} disabled={isRefreshing}>
-                <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                Refresh
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Create admin
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create Admin User</DialogTitle>
+                  <DialogDescription>
+                    Add a trusted team member and assign the right admin role.
+                  </DialogDescription>
+                </DialogHeader>
+                <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full name</Label>
+                    <Input
+                      id="name"
+                      value={form.name}
+                      onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                      placeholder="Ada Admin"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={form.email}
+                      onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                      placeholder="ada@example.com"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={form.phone}
+                      onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Role</Label>
+                    <Select
+                      value={form.role}
+                      onValueChange={(value: AdminRole) => setForm((current) => ({ ...current, role: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ADMIN_USER">Admin</SelectItem>
+                        <SelectItem value="SUPER_ADMIN_USER">Super Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <DialogFooter className="md:col-span-2">
+                    <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} disabled={isSubmitting}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      {isSubmitting ? "Creating..." : "Create admin"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+            <Button variant="outline" onClick={() => void loadAdmins()} disabled={isRefreshing}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
-        {!isSuperAdmin ? (
-          <Card className="border-orange-200 bg-orange-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-orange-900">
-                <Shield className="h-5 w-5" />
-                Super Admin Access Required
-              </CardTitle>
-              <CardDescription className="text-orange-800">
-                Only super admins can create, promote, or deactivate admin accounts.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCog className="h-5 w-5" />
-                  Current Admin Users
-                </CardTitle>
-                <CardDescription>
-                  Promote, demote, or deactivate accounts. Super admin safeguards are enforced on the server.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last login</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {admins.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center text-gray-500">
-                          No admin users found.
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCog className="h-5 w-5" />
+              Current Admin Users
+            </CardTitle>
+            <CardDescription>
+              Promote, demote, or deactivate accounts. Super admin safeguards are enforced on the server.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Last login</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {admins.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-gray-500">
+                      No admin users found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  admins.map((admin) => {
+                    const isSelf = admin.id === adminUser.id
+                    const nextRole: AdminRole =
+                      admin.role === "SUPER_ADMIN_USER" ? "ADMIN_USER" : "SUPER_ADMIN_USER"
+
+                    return (
+                      <TableRow key={admin.id}>
+                        <TableCell>
+                          <div className="font-medium text-gray-900">{admin.name}</div>
+                          <div className="text-xs text-gray-500">{admin.email}</div>
+                          {admin.phone ? <div className="text-xs text-gray-400">{admin.phone}</div> : null}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={admin.role === "SUPER_ADMIN_USER" ? "default" : "secondary"}>
+                            {roleLabel(admin.role)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={admin.isActive ? "outline" : "secondary"}>
+                            {admin.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatDate(admin.lastLogin)}</TableCell>
+                        <TableCell>{formatDate(admin.createdAt)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => void updateAdmin(admin.id, { role: nextRole })}
+                              disabled={isSelf}
+                            >
+                              <Shield className="mr-2 h-4 w-4" />
+                              {admin.role === "SUPER_ADMIN_USER" ? "Make admin" : "Make super"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => void updateAdmin(admin.id, { isActive: !admin.isActive })}
+                              disabled={isSelf}
+                            >
+                              <Power className="mr-2 h-4 w-4" />
+                              {admin.isActive ? "Deactivate" : "Activate"}
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
-                    ) : (
-                      admins.map((admin) => {
-                        const isSelf = admin.id === adminUser.id
-                        const nextRole: AdminRole =
-                          admin.role === "SUPER_ADMIN_USER" ? "ADMIN_USER" : "SUPER_ADMIN_USER"
-
-                        return (
-                          <TableRow key={admin.id}>
-                            <TableCell>
-                              <div className="font-medium text-gray-900">{admin.name}</div>
-                              <div className="text-xs text-gray-500">{admin.email}</div>
-                              {admin.phone ? <div className="text-xs text-gray-400">{admin.phone}</div> : null}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={admin.role === "SUPER_ADMIN_USER" ? "default" : "secondary"}>
-                                {roleLabel(admin.role)}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={admin.isActive ? "outline" : "secondary"}>
-                                {admin.isActive ? "Active" : "Inactive"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{formatDate(admin.lastLogin)}</TableCell>
-                            <TableCell>{formatDate(admin.createdAt)}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => void updateAdmin(admin.id, { role: nextRole })}
-                                  disabled={isSelf}
-                                >
-                                  <Shield className="mr-2 h-4 w-4" />
-                                  {admin.role === "SUPER_ADMIN_USER" ? "Make admin" : "Make super"}
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => void updateAdmin(admin.id, { isActive: !admin.isActive })}
-                                  disabled={isSelf}
-                                >
-                                  <Power className="mr-2 h-4 w-4" />
-                                  {admin.isActive ? "Deactivate" : "Activate"}
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </>
-        )}
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   )

@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
         role: true,
         phone: true,
         isActive: true,
+        mustChangePassword: true,
         lastLogin: true,
         createdAt: true
       }

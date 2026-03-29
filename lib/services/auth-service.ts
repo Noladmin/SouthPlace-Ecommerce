@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db"
 import { Prisma } from "@prisma/client"
-import { verifyPassword } from "@/lib/services/password-service"
+import { hashPassword, verifyPassword } from "@/lib/services/password-service"
 import { 
   generateOTPCode, 
   sendEmailOTP, 
@@ -11,10 +11,10 @@ import {
 import type { 
   Admin, 
   LoginRequest, 
-  AuthResponse, 
   OTPType,
   Role 
 } from "@/lib/types"
+import { hasAdminPermission, type AdminPermission } from "@/lib/admin-permissions"
 
 export interface LoginResult {
   success: boolean
@@ -237,6 +237,7 @@ const mapAdminToUser = (admin: Prisma.AdminGetPayload<{}>): Admin => ({
   name: admin.name,
   role: admin.role as Role,
   isActive: admin.isActive,
+  mustChangePassword: admin.mustChangePassword,
   lastLogin: admin.lastLogin,
   phone: admin.phone,
   twoFactorEnabled: admin.twoFactorEnabled,
@@ -253,10 +254,9 @@ export const createAdmin = async (data: {
   name: string
   role: Role
   phone?: string
+  mustChangePassword?: boolean
 }): Promise<{ success: boolean; message: string; admin?: Admin }> => {
   try {
-    const { hashPassword } = await import("@/lib/services/password-service")
-    
     const hashResult = await hashPassword(data.password)
     if (!hashResult.success) {
       return {
@@ -272,6 +272,7 @@ export const createAdmin = async (data: {
         name: data.name,
         role: data.role,
         phone: data.phone,
+        mustChangePassword: data.mustChangePassword ?? false,
       },
     })
 
@@ -395,6 +396,33 @@ export const requireSuperAdmin = async (
   }
 
   if (!isSuperAdmin(auth.admin)) {
+    return {
+      success: false,
+      error: "Forbidden",
+      status: 403,
+    }
+  }
+
+  return {
+    success: true,
+    admin: auth.admin,
+  }
+}
+
+export const requireAdminPermission = async (
+  request: Request,
+  permission: AdminPermission
+): Promise<{ success: boolean; admin?: Admin; error?: string; status?: number }> => {
+  const auth = await verifyAdminAuth(request)
+  if (!auth.success || !auth.admin) {
+    return {
+      success: false,
+      error: auth.error || "Unauthorized",
+      status: 401,
+    }
+  }
+
+  if (!hasAdminPermission(auth.admin, permission)) {
     return {
       success: false,
       error: "Forbidden",

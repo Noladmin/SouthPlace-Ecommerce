@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import type { Admin } from "@/lib/types"
+import { hasAdminPermission, type AdminPermission } from "@/lib/admin-permissions"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -66,6 +67,7 @@ const navigationItems = [
     title: "Analytics",
     href: "/admin/analytics",
     icon: BarChart3,
+    permission: "view_analytics" as AdminPermission,
   },
   {
     title: "Payments",
@@ -86,21 +88,60 @@ const navigationItems = [
     title: "Admin Users",
     href: "/admin/users",
     icon: UserCog,
-    roles: ["SUPER_ADMIN_USER"],
+    permission: "view_admin_users" as AdminPermission,
   },
   {
     title: "Settings",
     href: "/admin/settings",
     icon: Settings,
+    permission: "manage_settings" as AdminPermission,
   }
 ]
 
 export default function AdminLayout({ children, adminUser }: AdminLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [resolvedAdminUser, setResolvedAdminUser] = useState<Admin | null>(adminUser ?? null)
   const router = useRouter()
   const pathname = usePathname()
   const { toast } = useToast()
+
+  useEffect(() => {
+    if (adminUser) {
+      setResolvedAdminUser(adminUser)
+    }
+  }, [adminUser])
+
+  useEffect(() => {
+    if (adminUser || pathname === "/admin/login" || pathname === "/admin/change-password") return
+
+    const loadAdmin = async () => {
+      try {
+        const response = await fetch("/api/auth/admin/me", { cache: "no-store" })
+        if (!response.ok) {
+          return
+        }
+
+        const data = await response.json()
+        const nextAdmin = data.admin ?? null
+        setResolvedAdminUser(nextAdmin)
+
+        if (nextAdmin?.mustChangePassword && pathname !== "/admin/change-password") {
+          router.push("/admin/change-password")
+        }
+      } catch (error) {
+        console.error("Admin layout auth load error:", error)
+      }
+    }
+
+    void loadAdmin()
+  }, [adminUser, pathname, router])
+
+  useEffect(() => {
+    if (!resolvedAdminUser?.mustChangePassword) return
+    if (pathname === "/admin/change-password") return
+    router.push("/admin/change-password")
+  }, [pathname, resolvedAdminUser, router])
 
   const handleLogout = async () => {
     setIsLoading(true)
@@ -182,7 +223,7 @@ export default function AdminLayout({ children, adminUser }: AdminLayoutProps) {
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
             {navigationItems
-              .filter((item) => !item.roles || !adminUser || item.roles.includes(adminUser.role))
+              .filter((item) => !item.permission || (resolvedAdminUser ? hasAdminPermission(resolvedAdminUser, item.permission) : false))
               .map((item) => {
               const Icon = item.icon
               const active = isActive(item.href)
@@ -208,12 +249,12 @@ export default function AdminLayout({ children, adminUser }: AdminLayoutProps) {
 
           {/* User Info & Footer */}
           <div className="border-t border-gray-100 p-4 bg-gray-50/50">
-            {adminUser && !sidebarCollapsed && (
+            {resolvedAdminUser && !sidebarCollapsed && (
               <div className="mb-4 px-1">
-                <div className="font-medium text-gray-900 truncate">{adminUser.name}</div>
-                <div className="text-xs text-gray-500 truncate">{adminUser.email}</div>
+                <div className="font-medium text-gray-900 truncate">{resolvedAdminUser.name}</div>
+                <div className="text-xs text-gray-500 truncate">{resolvedAdminUser.email}</div>
                 <Badge variant="outline" className="mt-2 text-[10px] text-gray-500 font-normal border-gray-200 bg-white">
-                  {adminUser.role.replace("_", " ")}
+                  {resolvedAdminUser.role.replace("_", " ")}
                 </Badge>
               </div>
             )}
