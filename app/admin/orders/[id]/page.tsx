@@ -280,6 +280,17 @@ export default function SingleOrderPage() {
     }
   }
 
+  const handlePrintOrder = () => {
+    if (!order) return
+
+    const previousTitle = document.title
+    document.title = `Order ${order.orderNumber} | SouthTown Place`
+    window.print()
+    window.setTimeout(() => {
+      document.title = previousTitle
+    }, 250)
+  }
+
   const formatDate = (dateString: string | Date) => {
     const date = typeof dateString === 'string' ? new Date(dateString) : dateString
     return date.toLocaleDateString("en-NG", {
@@ -349,9 +360,9 @@ export default function SingleOrderPage() {
 
   return (
     <AdminLayout adminUser={adminUser}>
-      <div className="space-y-6 max-w-6xl mx-auto">
+      <div className="space-y-6 max-w-6xl mx-auto print-order-shell">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print-hidden">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
@@ -370,7 +381,7 @@ export default function SingleOrderPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" className="bg-white" disabled>
+            <Button variant="outline" className="bg-white" onClick={handlePrintOrder}>
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
@@ -394,12 +405,55 @@ export default function SingleOrderPage() {
           </div>
         </div>
 
+        <div className="print-only print-block">
+          <div className="print-card">
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">SouthTown Place</h1>
+                <p className="text-sm text-gray-500">Order dispatch sheet</p>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">Order #{order.orderNumber}</p>
+                <p className="text-sm text-gray-600">Placed {formatDate(order.createdAt)}</p>
+                <p className="text-sm text-gray-600">Status: {order.status.replace(/_/g, " ")}</p>
+              </div>
+            </div>
+
+            <div className="print-grid mt-6">
+              <div>
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Customer</h2>
+                <p className="mt-2 font-medium text-gray-900">{order.customerName}</p>
+                <p className="text-sm text-gray-700">{order.customerPhone}</p>
+                {order.customerEmail ? <p className="text-sm text-gray-700">{order.customerEmail}</p> : null}
+              </div>
+              <div>
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Delivery</h2>
+                <p className="mt-2 font-medium text-gray-900">{order.deliveryMethod}</p>
+                <p className="text-sm text-gray-700">{order.deliveryAddress}</p>
+                <p className="text-sm text-gray-700">{order.deliveryCity}</p>
+              </div>
+              <div>
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Payment</h2>
+                <p className="mt-2 font-medium text-gray-900">{order.paymentMethod}</p>
+                <p className="text-sm text-gray-700">{order.paymentStatus}</p>
+              </div>
+            </div>
+
+            {order.specialInstructions ? (
+              <div className="mt-5 border border-gray-200 rounded-lg p-4">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Special Instructions</h2>
+                <p className="mt-2 text-sm text-gray-800">{order.specialInstructions}</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
 
             {/* Status Timeline */}
-            <Card className="border-gray-100 shadow-sm overflow-hidden">
+            <Card className="border-gray-100 shadow-sm overflow-hidden print-hidden">
               <div className="p-6 bg-white">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="font-semibold text-gray-900">Order Status</h3>
@@ -480,7 +534,7 @@ export default function SingleOrderPage() {
               </div>
             </Card>
 
-            <Card className="border-gray-100 shadow-sm">
+            <Card className="border-gray-100 shadow-sm print-hidden">
               <CardHeader className="bg-gray-50/50 pb-4 border-b border-gray-100">
                 <CardTitle className="text-lg font-semibold text-gray-900">Delivery Assignment</CardTitle>
                 <CardDescription>Assign only after the order is ready for pickup. Links are generated only for the assigned rider.</CardDescription>
@@ -581,14 +635,14 @@ export default function SingleOrderPage() {
             </Card>
 
             {/* Items Table */}
-            <Card className="border-gray-100 shadow-sm">
+            <Card className="border-gray-100 shadow-sm print-card">
               <CardHeader className="bg-gray-50/50 pb-4 border-b border-gray-100">
                 <CardTitle className="text-lg font-semibold text-gray-900">Order Items</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-gray-100">
                   {order.items.map((item, i) => (
-                    <div key={i} className="p-4 flex items-start justify-between hover:bg-gray-50/30 transition-colors">
+                    <div key={i} className="p-4 flex items-start justify-between hover:bg-gray-50/30 transition-colors print-item-row">
                       <div className="flex items-start gap-4">
                         <div className="flex items-center justify-center w-8 h-8 rounded bg-gray-100 text-sm font-bold text-gray-500">
                           {item.quantity}x
@@ -640,7 +694,7 @@ export default function SingleOrderPage() {
           </div>
 
           {/* Sidebar Info */}
-          <div className="space-y-6">
+          <div className="space-y-6 print-hidden">
             <Card className="border-gray-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold text-gray-900">Customer Details</CardTitle>
