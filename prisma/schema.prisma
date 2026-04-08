@@ -196,8 +196,23 @@ model Customer {
   orders            Order[]
   reviews           Review[]
   favorites         CustomerFavorite[]
+  passwordResetTokens CustomerPasswordResetToken[]
 
   @@map("customers")
+}
+
+model CustomerPasswordResetToken {
+  id         String   @id @default(cuid())
+  customerId String
+  code       String
+  expiresAt  DateTime
+  isUsed     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, code, isUsed])
+  @@map("customer_password_reset_tokens")
 }
 
 // Order Management

@@ -38,6 +38,11 @@ interface AdminInvitationEmailPayload {
   temporaryPassword: string
 }
 
+interface CustomerPasswordResetEmailPayload {
+  firstName: string
+  code: string
+}
+
 export interface OrderEmailPayload {
   id?: string
   orderNumber: string
@@ -308,6 +313,27 @@ function buildAdminInvitationEmail(payload: AdminInvitationEmailPayload): { subj
   return { subject, html }
 }
 
+function buildCustomerPasswordResetEmail(payload: CustomerPasswordResetEmailPayload): { subject: string; html: string } {
+  const subject = "SouthtownPlace account password reset"
+  const html = baseEmailLayout(
+    "Password Reset",
+    `
+      <p style="margin:0 0 12px;">Hi <strong>${payload.firstName}</strong>,</p>
+      <p style="margin:0 0 12px;">We received a request to reset your SouthtownPlace account password.</p>
+      <div style="background:linear-gradient(135deg,#c2410c,#ea580c); padding:24px; text-align:center; border-radius:10px; margin:18px 0;">
+        <div style="color:#ffffff; font-size:34px; letter-spacing:8px; font-weight:700;">${payload.code}</div>
+      </div>
+      <p style="margin:0 0 12px;">Enter this 6-digit code on the password reset form and choose a new password.</p>
+      <div style="background-color:#fff7ed; padding:16px; border-radius:8px; border-left:4px solid #ea580c;">
+        <p style="color:#666; font-size:14px; margin:0;">
+          This code expires in 10 minutes. If you did not request this password reset, you can ignore this email.
+        </p>
+      </div>
+    `
+  )
+  return { subject, html }
+}
+
 async function sendWelcomeEmail(payload: WelcomeEmailPayload): Promise<EmailSendResult> {
   if (!payload.email) return { success: false, error: "Missing recipient email" }
   const { subject, html } = buildWelcomeEmail(payload)
@@ -357,6 +383,12 @@ async function sendAdminInvitation(payload: AdminInvitationEmailPayload): Promis
   return sendEmail(payload.email, subject, html)
 }
 
+async function sendCustomerPasswordReset(email: string, payload: CustomerPasswordResetEmailPayload): Promise<EmailSendResult> {
+  if (!email) return { success: false, error: "Missing customer email" }
+  const { subject, html } = buildCustomerPasswordResetEmail(payload)
+  return sendEmail(email, subject, html)
+}
+
 export const emailService = {
   testConnection,
   sendEmail,
@@ -368,4 +400,5 @@ export const emailService = {
   sendRiderAssignmentLink,
   sendDeliveryCode,
   sendAdminInvitation,
+  sendCustomerPasswordReset,
 }
