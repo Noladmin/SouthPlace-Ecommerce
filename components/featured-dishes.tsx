@@ -11,10 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { addToCart, getMeasurementIcon } from "@/lib/cart-utils"
 import AddToCartModal from "@/components/add-to-cart-modal"
-// Define types for menu items from API
-type MeasurementType = 'litres' | 'plates' | 'packs' | 'pcs'
-interface MenuVariant { name: string; price: string; numericPrice: number; measurement?: string; measurementType?: MeasurementType }
-interface MenuItem { id: string; name: string; description: string; price: string; basePrice: number; image: string; tags: string[]; dietary?: string[]; allergens?: string[]; cookingMethod?: string[]; mealType?: string[]; nutritionalHighlights?: string[]; variants?: MenuVariant[]; serving?: string; serves?: string; measurement?: string; measurementType?: MeasurementType; specialOffer?: string; rating?: number; prepTime?: string; difficulty?: 'Easy' | 'Medium' | 'Hard'; spiceLevel?: 1 | 2 | 3 | 4 | 5; origin?: string; isFeatured?: boolean; extraGroups?: Array<{ id: string; name: string; description?: string; isGlobal?: boolean; minSelections?: number; maxSelections?: number; items: Array<{ id: string; name: string; price: number; imageUrl?: string }> }> }
+import { MenuItem, MenuVariant, getInitialMenuVariant, getMenuItemHref } from "@/lib/menu"
 
 // Skeleton Loading Component
 function FeaturedDishesSkeleton() {
@@ -290,75 +287,96 @@ function FeaturedDishesContent() {
       className="relative"
     >
       {/* Clean Grid Layout - Like Hubtel */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
         {featuredDishes.map((dish, index) => (
           <motion.div
             key={dish.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-2xl overflow-hidden cursor-pointer relative group w-full aspect-square"
+            className="group space-y-3"
           >
-            {/* Image with overlay - All content on overlay */}
-            <div className="relative w-full h-full">
-              <Image
-                src={dish.image || "/placeholder.svg"}
-                alt={dish.name}
-                fill
-                className="object-cover"
-              />
-              {/* Overlay gradient - Clean and organized */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30"></div>
-              
-              {/* All content organized on overlay - Bolt Food style */}
-              <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-5">
-                {/* Top section - Tags if available */}
-                {(dish.tags ?? []).length > 0 && (
-                  <div className="flex gap-2 mb-auto">
-                    <span className="bg-white/90 text-gray-900 text-xs font-medium px-2.5 py-1 rounded-full">
-                      {dish.tags[0]}
+            <Link href={getMenuItemHref(dish.id)} className="block">
+              <div className="relative aspect-[16/9.5] overflow-hidden rounded-t-[1.1rem] rounded-b-none shadow-lg shadow-orange-100/40">
+                <Image
+                  src={dish.image || "/placeholder.svg"}
+                  alt={dish.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/35 to-black/20" />
+
+                <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3 sm:left-5 sm:right-5 sm:top-5">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-black/60 bg-black/80 text-white shadow-lg shadow-black/25">
+                    <Eye className="h-5 w-5" />
+                  </span>
+
+                  {dish.serves ? (
+                    <span className="rounded-full bg-black/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-sm">
+                      Serves {dish.serves}
                     </span>
-                  </div>
-                )}
-                
-                {/* Bottom section - All content organized */}
-                <div className="space-y-3">
-                  {/* Name and Description */}
-                  <div>
-                    <h3 className="text-white font-semibold text-lg sm:text-xl mb-1.5 drop-shadow-lg leading-tight">{dish.name}</h3>
-                    <p className="text-white/90 text-sm line-clamp-2 drop-shadow leading-snug">{dish.description}</p>
-                  </div>
-                  
-                  {/* Price and Add button - Clean organization */}
-                  <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/20">
-                    <div>
-                      <span className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">{dish.price}</span>
-                      {dish.serves && (
-                        <p className="text-white/80 text-xs mt-0.5">Serves {dish.serves}</p>
-                      )}
-                    </div>
-                    
-                    {/* Small Add to Cart card - Bolt Food style */}
-                    <button
-                      onClick={() => {
-                        if (dish.variants && dish.variants.length > 0) {
-                          setSelectedDish(dish)
-                          setSelectedVariant(dish.variants[0])
-                          setSelectedExtras({})
-                        } else if (dish.extraGroups && dish.extraGroups.length > 0) {
-                          setSelectedDish(dish)
-                          setSelectedVariant(null)
-                          setSelectedExtras({})
-                        } else {
-                          handleAddToCart(dish)
-                        }
-                      }}
-                      className="group inline-flex h-11 w-11 items-center justify-center rounded-md border border-orange-500 bg-orange-500 text-black hover:bg-black hover:border-black transition-all duration-200 shadow-sm flex-shrink-0"
-                    >
-                      <ShoppingCart className="h-5 w-5 text-black group-hover:text-orange-400 transition-colors duration-200" />
-                    </button>
+                  ) : null}
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+                  <div className="flex flex-wrap gap-2">
+                    {(dish.tags ?? []).slice(0, 2).map((tag) => (
+                      <span key={tag} className="rounded-full bg-white/92 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-900 shadow-sm">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
+              </div>
+            </Link>
+
+            <div className="rounded-t-sm rounded-b-lg border border-gray-100 bg-white px-4 py-4 shadow-md shadow-orange-100/20 sm:px-5">
+              <Link href={getMenuItemHref(dish.id)} className="block">
+                <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-semibold leading-tight text-gray-900 sm:text-xl">{dish.name}</h3>
+                      <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-gray-600">{dish.description}</p>
+                    </div>
+                    {dish.rating ? (
+                      <span className="shrink-0 rounded-full bg-orange-50 px-3 py-1 text-[11px] font-semibold text-orange-700">
+                        {dish.rating.toFixed(1)}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-4 flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">Price</p>
+                      <span className="mt-1 block text-[1.8rem] font-bold leading-none text-gray-950">{dish.price}</span>
+                      {(dish.variants && dish.variants.length > 0) || (dish.extraGroups && dish.extraGroups.length > 0) ? (
+                        <p className="mt-1 text-xs text-gray-500">Options available</p>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              <div className="mt-4">
+                <button
+                  onClick={() => {
+                    if (dish.variants && dish.variants.length > 0) {
+                      setSelectedDish(dish)
+                      setSelectedVariant(getInitialMenuVariant(dish))
+                      setSelectedExtras({})
+                    } else if (dish.extraGroups && dish.extraGroups.length > 0) {
+                      setSelectedDish(dish)
+                      setSelectedVariant(null)
+                      setSelectedExtras({})
+                    } else {
+                      handleAddToCart(dish)
+                    }
+                  }}
+                  className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-gray-950 px-5 text-sm font-semibold text-white transition-colors hover:bg-orange-500 hover:text-black"
+                >
+                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  Add to cart
+                </button>
               </div>
             </div>
           </motion.div>

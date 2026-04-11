@@ -10,49 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { addToCart, updateCartItemQuantity, removeFromCart, getCartTotals, getMeasurementIcon } from "@/lib/cart-utils"
 import AddToCartModal from "@/components/add-to-cart-modal"
-// Define types for menu items
-interface MenuVariant {
-  name: string
-  price: string
-  numericPrice: number
-  measurement?: string
-  measurementType?: 'litres' | 'plates' | 'packs' | 'pcs'
-}
-
-interface MenuItem {
-  id: string
-  name: string
-  description: string
-  price: string
-  basePrice: number
-  image: string
-  tags: string[]
-  dietary?: string[]
-  allergens?: string[]
-  cookingMethod?: string[]
-  mealType?: string[]
-  nutritionalHighlights?: string[]
-  variants?: MenuVariant[]
-  serving?: string
-  serves?: string
-  measurement?: string
-  measurementType?: 'litres' | 'plates' | 'packs' | 'pcs'
-  specialOffer?: string
-  rating?: number
-  prepTime?: string
-  difficulty?: 'Easy' | 'Medium' | 'Hard'
-  spiceLevel?: 1 | 2 | 3 | 4 | 5
-  origin?: string
-  extraGroups?: Array<{
-    id: string
-    name: string
-    description?: string
-    isGlobal?: boolean
-    minSelections?: number
-    maxSelections?: number
-    items: Array<{ id: string; name: string; price: number; imageUrl?: string }>
-  }>
-}
+import { MenuItem, MenuVariant, getInitialMenuVariant, getMenuItemHref } from "@/lib/menu"
 import { MenuSkeleton } from "@/components/MenuSkeleton"
 import MiniCart from "@/components/mini-cart"
 
@@ -189,7 +147,9 @@ function MenuContent() {
   const viewDetails = (item: MenuItem) => {
     setSelectedItem(item)
     if (item.variants && item.variants.length > 0) {
-      setSelectedVariant(item.variants[0])
+      setSelectedVariant(getInitialMenuVariant(item))
+    } else {
+      setSelectedVariant(null)
     }
     setSelectedExtras({})
   }
@@ -577,7 +537,8 @@ function MenuContent() {
                         viewMode === "list" ? "flex flex-col sm:flex-row" : "flex flex-col"
                       )}
                     >
-                      <div
+                      <Link
+                        href={getMenuItemHref(item.id)}
                         className={cn(
                           "relative overflow-hidden",
                           viewMode === "list" ? "h-56 sm:h-auto sm:w-64" : "h-56"
@@ -602,36 +563,39 @@ function MenuContent() {
                             ))}
                           </div>
                         )}
-                      </div>
+                      </Link>
 
                       <div className="flex-1 p-5 sm:p-6 flex flex-col justify-between bg-gradient-to-b from-white to-orange-50/20">
-                        <div>
-                          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
-                            {item.name}
-                          </h3>
-                          <p className="mt-2 text-sm sm:text-base text-gray-600 line-clamp-2">
-                            {item.description}
-                          </p>
-                          {item.serves && (
-                            <p className="mt-3 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-100 rounded-full inline-flex px-3 py-1">
-                              Serves {item.serves}
+                        <Link href={getMenuItemHref(item.id)} className="block">
+                          <div>
+                            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+                              {item.name}
+                            </h3>
+                            <p className="mt-2 text-sm sm:text-base text-gray-600 line-clamp-2">
+                              {item.description}
                             </p>
-                          )}
-                        </div>
+                            {item.serves && (
+                              <p className="mt-3 inline-flex rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+                                Serves {item.serves}
+                              </p>
+                            )}
+                          </div>
+                        </Link>
 
                         <div className="mt-5">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <span className="text-2xl sm:text-3xl font-bold text-orange-600">
-                                {item.price}
-                              </span>
-                              {item.variants && item.variants.length > 0 && (
-                                <p className="text-xs text-gray-500 mt-1">Multiple sizes available</p>
-                              )}
-                              {item.extraGroups && item.extraGroups.length > 0 && (
-                                <p className="text-xs text-gray-500 mt-1">Extras available</p>
-                              )}
-                            </div>
+                          <div>
+                            <span className="text-2xl sm:text-3xl font-bold text-orange-600">
+                              {item.price}
+                            </span>
+                            {item.variants && item.variants.length > 0 && (
+                              <p className="mt-1 text-xs text-gray-500">Multiple sizes available</p>
+                            )}
+                            {item.extraGroups && item.extraGroups.length > 0 && (
+                              <p className="mt-1 text-xs text-gray-500">Extras available</p>
+                            )}
+                          </div>
+
+                          <div className="mt-4 pt-4 border-t border-orange-100/70 grid gap-2">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -642,19 +606,17 @@ function MenuContent() {
                                 }
                               }}
                               aria-label={`Add ${item.name} to cart`}
-                              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-gray-900 bg-gray-900 text-white hover:bg-gray-800 transition-colors shadow-sm"
+                              className="inline-flex w-full items-center justify-center rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-black transition-colors hover:bg-orange-400"
                             >
-                              <ShoppingBag className="h-5 w-5" />
+                              <ShoppingBag className="mr-2 h-5 w-5" />
+                              Add to Cart
                             </button>
-                          </div>
-
-                          <div className="mt-4 pt-4 border-t border-orange-100/70 grid gap-2">
-                            <button
-                              onClick={() => viewDetails(item)}
+                            <Link
+                              href={getMenuItemHref(item.id)}
                               className="inline-flex w-full items-center justify-center rounded-xl border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
                             >
                               View Details
-                            </button>
+                            </Link>
                           </div>
                         </div>
                       </div>
