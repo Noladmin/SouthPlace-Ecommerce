@@ -276,20 +276,37 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="flex items-center space-x-4 md:hidden">
+          <div className="flex items-center space-x-3 md:hidden">
             <Link
               href="/cart"
-              className="relative flex items-center justify-center text-gray-800"
+              className="relative flex items-center justify-center text-gray-800 p-1"
             >
               <ShoppingBag className="h-6 w-6" />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold border-2 border-white shadow-lg">
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold border-2 border-white shadow-lg">
                   {cartCount}
                 </span>
               )}
             </Link>
+            
+            {isAuthenticated ? (
+              <Link href="/account/dashboard" className="text-gray-800 p-1">
+                <User className="h-6 w-6" />
+              </Link>
+            ) : (
+              <button
+                onClick={() => {
+                  setAuthModalTab("login")
+                  setShowAuthModal(true)
+                }}
+                className="text-gray-800 p-1"
+              >
+                <User className="h-6 w-6" />
+              </button>
+            )}
+
             <button
-              className="text-2xl text-gray-800"
+              className="text-gray-800 p-1"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}

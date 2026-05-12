@@ -293,9 +293,9 @@ function OrderContent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Categories and Menu Items */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
+          <div className="lg:col-span-2 order-1">
             {/* Category Navigation */}
             <div className="mb-6">
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
@@ -408,7 +408,7 @@ function OrderContent() {
           </div>
 
           {/* Cart Sidebar - Mobile optimized */}
-          <div className="lg:col-span-1 order-1 lg:order-2">
+          <div className="lg:col-span-1 order-2 lg:order-2">
             <div 
               className="bg-white rounded-2xl border border-orange-100 p-5 sticky top-20 lg:top-24 mb-4 lg:mb-0 shadow-lg"
             >
@@ -532,10 +532,10 @@ function OrderContent() {
       {selectedItem && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div
-            className="bg-white rounded-3xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-gray-100"
+            className="bg-white rounded-3xl p-5 sm:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-gray-100"
           >
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-4xl font-bold text-orange-600">{selectedItem.name}</h2>
+            <div className="flex justify-between items-start mb-4 sm:mb-6">
+              <h2 className="text-2xl sm:text-4xl font-bold text-orange-600">{selectedItem.name}</h2>
               <button
                 onClick={() => {
                   setSelectedItem(null)
@@ -547,7 +547,7 @@ function OrderContent() {
               </button>
             </div>
             
-            <div className="relative h-80 mb-8 rounded-3xl overflow-hidden shadow-xl">
+            <div className="relative h-48 sm:h-80 mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl">
               <Image
                 src={selectedItem.image || "/placeholder.svg"}
                 alt={selectedItem.name}
@@ -558,8 +558,8 @@ function OrderContent() {
             </div>
 
             <div className="space-y-6">
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-4xl font-bold text-orange-600">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                <span className="text-2xl sm:text-4xl font-bold text-orange-600">
                   ₦{selectedVariant ? selectedVariant.numericPrice.toFixed(2) : selectedItem.basePrice.toFixed(2)}
                 </span>
                 <div className="flex flex-wrap gap-2 justify-end">

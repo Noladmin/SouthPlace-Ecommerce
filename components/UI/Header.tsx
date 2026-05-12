@@ -279,14 +279,41 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={toggleMenu}
-              className="md:hidden text-gray-800 p-2"
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-            </button>
+            {/* Mobile Actions & Menu Button */}
+            <div className="flex items-center space-x-3 md:hidden">
+              <Link href="/cart" className="relative text-gray-800 p-2">
+                <FaShoppingBag className="text-xl" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] flex items-center justify-center font-bold border-2 border-white">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+
+              {isAuthenticated ? (
+                <Link href="/account/dashboard" className="text-gray-800 p-2">
+                  <FaUserCircle className="text-xl text-orange-500" />
+                </Link>
+              ) : (
+                <button
+                  onClick={() => {
+                    setAuthModalTab('login');
+                    setShowAuthModal(true);
+                  }}
+                  className="text-gray-800 p-2"
+                >
+                  <FaUserCircle className="text-xl" />
+                </button>
+              )}
+
+              <button
+                onClick={toggleMenu}
+                className="text-gray-800 p-2"
+                aria-label="Toggle menu"
+              >
+                {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+              </button>
+            </div>
           </div>
 
           {/* Mobile Menu - Full Screen Slide-in */}

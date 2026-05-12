@@ -5,6 +5,7 @@ import ConditionalNavbar from "@/components/conditional-navbar"
 import Head from "next/head"
 import { inter, montserrat } from "@/lib/fonts"
 import AOSInit from "@/components/UI/AOSInit"
+import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: "SouthtownPlace Catering Services | Professional Catering & Facilities Management",
@@ -89,6 +90,7 @@ export default function RootLayout({
         <ConditionalNavbar>
           <main className="overflow-hidden">{children}</main>
         </ConditionalNavbar>
+        <Toaster />
       </body>
     </html>
   )
