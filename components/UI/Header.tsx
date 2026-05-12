@@ -490,6 +490,61 @@ export default function Header() {
                       <FaCalendarAlt className="text-xl text-orange-500" />
                       <span className="font-medium text-gray-700 group-hover:text-orange-600">Order Now</span>
                     </Link>
+
+                    {/* Authentication Section */}
+                    <div className="border-t border-gray-200 pt-4 mt-4">
+                      {isAuthenticated ? (
+                        <div className="space-y-2">
+                          <div className="px-4 py-2 mb-2 bg-orange-50 rounded-lg">
+                            <p className="text-xs text-orange-600 font-semibold uppercase tracking-wider">Signed in as</p>
+                            <p className="font-bold text-gray-900 truncate">{user?.name || user?.email || 'User'}</p>
+                          </div>
+                          <Link 
+                            href="/account/dashboard" 
+                            onClick={closeMenu}
+                            className="flex items-center space-x-3 py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors group"
+                          >
+                            <FaUserCircle className="text-xl text-orange-500" />
+                            <span className="font-medium text-gray-700 group-hover:text-orange-600">My Dashboard</span>
+                          </Link>
+                          <Link 
+                            href="/order-history" 
+                            onClick={closeMenu}
+                            className="flex items-center space-x-3 py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors group"
+                          >
+                            <FaShoppingBag className="text-xl text-orange-500" />
+                            <span className="font-medium text-gray-700 group-hover:text-orange-600">Order History</span>
+                          </Link>
+                          <button 
+                            onClick={async () => {
+                              await fetch('/api/auth/logout', { method: 'POST' });
+                              setIsAuthenticated(false);
+                              setUser(null);
+                              closeMenu();
+                              try { window.dispatchEvent(new Event('authChanged')); } catch {}
+                              window.location.href = '/';
+                            }}
+                            className="flex items-center space-x-3 w-full py-3 px-4 rounded-lg hover:bg-red-50 transition-colors group text-red-600"
+                          >
+                            <FaSignOutAlt className="text-xl" />
+                            <span className="font-medium">Sign Out</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            setAuthModalTab('login');
+                            setShowAuthModal(true);
+                            closeMenu();
+                          }}
+                          className="flex items-center space-x-3 w-full py-3 px-4 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-sm"
+                        >
+                          <FaSignInAlt className="text-xl" />
+                          <span className="font-bold">Sign In / Register</span>
+                        </button>
+                      )}
+                    </div>
+
                   </nav>
 
                   {/* Footer */}
