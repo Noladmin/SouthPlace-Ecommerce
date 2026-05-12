@@ -122,7 +122,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", redir
           router.refresh()
         }, 500)
       } else {
-        const message = result.error || result.message || "Invalid credentials. Please try again."
+        const message = result.error || result.message || "Invalid email or password. Please try again."
         toast({
           title: "Login Failed",
           description: message,

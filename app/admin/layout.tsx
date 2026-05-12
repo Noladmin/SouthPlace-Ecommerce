@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Toaster } from "@/components/ui/toaster"
+import { ClientToaster } from "@/components/client-toaster"
 
 export const metadata: Metadata = {
   title: "SouthtownPlace Catering - Admin",
@@ -14,7 +14,7 @@ export default function AdminLayout({
   return (
     <>
       {children}
-      <Toaster />
+      <ClientToaster />
     </>
   )
 } 

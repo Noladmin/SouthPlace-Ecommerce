@@ -509,24 +509,19 @@ export default function CheckoutPage() {
         })
       } else {
         const error = await response.json()
-        if (error.details && Array.isArray(error.details)) {
-          // Handle validation errors
-          setErrorModal({
-            show: true,
-            title: "Login Failed",
-            message: error.message || "Please fix the following errors:",
-            details: error.details.map((err: any) => `${err.path?.join('.')}: ${err.message}`)
-          })
-        } else {
-          throw new Error(error.message || 'Login failed')
-        }
+        const errorMessage = error.error || error.message || "Login failed. Please check your credentials."
+        toast({
+          title: "Login Failed",
+          description: errorMessage,
+          variant: "destructive",
+        })
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Please check your credentials and try again."
-      setErrorModal({
-        show: true,
+      toast({
         title: "Login Failed",
-        message: errorMessage
+        description: errorMessage,
+        variant: "destructive",
       })
     }
   }
@@ -571,24 +566,19 @@ export default function CheckoutPage() {
         })
       } else {
         const error = await response.json()
-        if (error.details && Array.isArray(error.details)) {
-          // Handle validation errors
-          setErrorModal({
-            show: true,
-            title: "Registration Failed",
-            message: error.message || "Please fix the following errors:",
-            details: error.details.map((err: any) => `${err.path?.join('.')}: ${err.message}`)
-          })
-        } else {
-          throw new Error(error.message || 'Registration failed')
-        }
+        const errorMessage = error.error || error.message || "Registration failed. Please try again."
+        toast({
+          title: "Registration Failed",
+          description: errorMessage,
+          variant: "destructive",
+        })
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Please check your information and try again."
-      setErrorModal({
-        show: true,
+      toast({
         title: "Registration Failed",
-        message: errorMessage
+        description: errorMessage,
+        variant: "destructive",
       })
     }
   }
