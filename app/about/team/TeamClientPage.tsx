@@ -5,7 +5,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { motion } from "@/lib/motion"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Instagram, Linkedin, Twitter, ChevronRight, UtensilsCrossed, Truck, Star } from "lucide-react"
+import { ArrowLeft, ChevronRight, UtensilsCrossed, Truck, Star } from "lucide-react"
+import { FaInstagram, FaLinkedin, FaXTwitter } from "react-icons/fa6"
 
 // Team members data
 const teamMembers = {
@@ -164,9 +165,9 @@ export default function TeamClientPage() {
                   <div className="flex gap-3 mt-auto">
                     {Object.entries(member.social).map(([platform, link], i) => (
                       <Link key={i} href={link} className="p-2 rounded-full bg-gray-50 text-gray-400 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                        {platform === 'instagram' && <Instagram className="w-4 h-4" />}
-                        {platform === 'linkedin' && <Linkedin className="w-4 h-4" />}
-                        {platform === 'twitter' && <Twitter className="w-4 h-4" />}
+                        {platform === 'instagram' && <FaInstagram className="w-4 h-4" />}
+                        {platform === 'linkedin' && <FaLinkedin className="w-4 h-4" />}
+                        {platform === 'twitter' && <FaXTwitter className="w-4 h-4" />}
                       </Link>
                     ))}
                   </div>

@@ -41,12 +41,182 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isForgotView, setIsForgotView] = useState(false)
+  const [resetCodeSent, setResetCodeSent] = useState(false)
+  const [otp, setOtp] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  const [showResetPassword, setShowResetPassword] = useState(false)
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     await onLogin(email, password)
     setIsLoading(false)
+  }
+
+  const handleRequestResetCode = async () => {
+    if (!email) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to send reset code")
+
+      setResetCodeSent(true)
+      toast({
+        title: "Reset code sent",
+        description: "Please check your email for the 6-digit code.",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Request failed",
+        description: error.message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!resetCodeSent) {
+      await handleRequestResetCode()
+      return
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast({ title: "Error", description: "Passwords do not match.", variant: "destructive" })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp, password: newPassword, confirmPassword: confirmNewPassword }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to reset password")
+
+      toast({ title: "Success", description: "Password reset complete. You can now sign in." })
+      setIsForgotView(false)
+      setResetCodeSent(false)
+      setPassword("")
+    } catch (error: any) {
+      toast({ title: "Reset failed", description: error.message, variant: "destructive" })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isForgotView) {
+    return (
+      <form onSubmit={handleResetPassword} className="space-y-4">
+        <div>
+          <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700 mb-1">
+            Email Address *
+          </label>
+          <input
+            type="email"
+            id="resetEmail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all disabled:opacity-50"
+            required
+            disabled={isLoading || resetCodeSent}
+          />
+        </div>
+
+        {resetCodeSent && (
+          <>
+            <div>
+              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
+                Reset Code *
+              </label>
+              <input
+                type="text"
+                id="otp"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all text-center tracking-widest text-xl"
+                placeholder="000000"
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <label htmlFor="newPass" className="block text-sm font-medium text-gray-700 mb-1">
+                New Password *
+              </label>
+              <div className="relative">
+                <input
+                  type={showResetPassword ? "text" : "password"}
+                  id="newPass"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all"
+                  required
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowResetPassword(!showResetPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showResetPassword ? <Eye className="h-4 w-4 text-gray-400" /> : <EyeOff className="h-4 w-4 text-gray-400" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="confirmNewPass" className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm New Password *
+              </label>
+              <input
+                type="password"
+                id="confirmNewPass"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all"
+                required
+                disabled={isLoading}
+              />
+            </div>
+          </>
+        )}
+
+        <div className="flex flex-col gap-3 pt-2">
+          <Button type="submit" className="w-full rounded-lg bg-primary hover:bg-primary-dark text-white shadow-lg shadow-primary/20" disabled={isLoading}>
+            {isLoading ? "Processing..." : (resetCodeSent ? "Reset Password" : "Send Reset Code")}
+          </Button>
+          <button
+            type="button"
+            onClick={() => { setIsForgotView(false); setResetCodeSent(false); }}
+            className="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors text-center"
+            disabled={isLoading}
+          >
+            Back to Sign In
+          </button>
+        </div>
+      </form>
+    )
   }
 
   return (
@@ -90,6 +260,15 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
           </button>
         </div>
       </div>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setIsForgotView(true)}
+          className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+        >
+          Forgot password?
+        </button>
+      </div>
       <Button type="submit" className="w-full rounded-lg bg-primary hover:bg-primary-dark text-white shadow-lg shadow-primary/20" disabled={isLoading}>
         {isLoading ? "Signing In..." : "Sign In"}
       </Button>
@@ -131,7 +310,7 @@ function RegisterForm({ onRegister }: { onRegister: (formData: any) => Promise<v
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
             First Name *
@@ -1045,7 +1224,7 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 gap-4 mb-6">
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                         Email Address *
@@ -1080,7 +1259,7 @@ export default function CheckoutPage() {
 
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-3">Fulfillment Option *</label>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       <div
                         className={cn(
                           "border rounded-lg p-4 cursor-pointer transition-all",
@@ -1157,7 +1336,7 @@ export default function CheckoutPage() {
                         />
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-4 mb-6">
+                      <div className="grid grid-cols-1 gap-4 mb-6">
                         <div>
                           <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
                             City *
@@ -1177,7 +1356,7 @@ export default function CheckoutPage() {
 
                       <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-3">Delivery Speed *</label>
-                        <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                           <div
                             className={cn(
                               "border rounded-lg p-4 cursor-pointer transition-all",
@@ -1289,7 +1468,7 @@ export default function CheckoutPage() {
 
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-3">Payment Option *</label>
-                    <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3">
                       <button
                         type="button"
                         className={cn(

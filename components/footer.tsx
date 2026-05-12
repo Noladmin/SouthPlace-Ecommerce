@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Facebook, Instagram, Twitter, MapPin, Phone, Mail } from "lucide-react"
+import { MapPin, Phone, Mail } from "lucide-react"
+import { FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6"
 import { Button } from "@/components/ui/button"
 
 export default function Footer() {
@@ -18,19 +19,19 @@ export default function Footer() {
                 href="https://facebook.com"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
               >
-                <Facebook className="h-5 w-5" />
+                <FaFacebook className="h-5 w-5" />
               </Link>
               <Link
                 href="https://www.instagram.com/tasty_bowls_southampton?igsh=MWd1azh0emNhNnJkag=="
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
               >
-                <Instagram className="h-5 w-5" />
+                <FaInstagram className="h-5 w-5" />
               </Link>
               <Link
                 href="https://twitter.com"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
               >
-                <Twitter className="h-5 w-5" />
+                <FaXTwitter className="h-5 w-5" />
               </Link>
             </div>
           </div>
