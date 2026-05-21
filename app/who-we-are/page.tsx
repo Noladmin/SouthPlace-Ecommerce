@@ -29,11 +29,6 @@ export default function WhoWeAre() {
       description: 'We continuously improve our services through innovation and adoption of best practices.'
     },
     {
-      icon: FaShieldAlt,
-      title: 'HACCP Compliance',
-      description: 'Strict adherence to Hazard Analysis and Critical Control Points for food safety and quality assurance.'
-    },
-    {
       icon: FaFileInvoice,
       title: 'Tax Compliance',
       description: 'Fully compliant with all tax regulations and requirements, ensuring transparent and lawful operations.'
@@ -286,33 +281,19 @@ export default function WhoWeAre() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="flex justify-center max-w-2xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
-              className="bg-gray-50 p-8 rounded-lg shadow-lg text-center"
+              className="bg-gray-50 p-8 rounded-lg shadow-lg text-center w-full"
             >
               <div className="bg-orange-100 p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
                 <FaAward className="text-4xl text-orange-500" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Tax Compliance</h3>
               <p className="text-gray-600">Fully compliant with all tax regulations and requirements, ensuring transparent and lawful operations.</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="bg-gray-50 p-8 rounded-lg shadow-lg text-center"
-            >
-              <div className="bg-orange-100 p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <FaAward className="text-4xl text-orange-500" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">HACCP Compliance</h3>
-              <p className="text-gray-600">Strict adherence to Hazard Analysis and Critical Control Points for food safety and quality assurance.</p>
             </motion.div>
           </div>
         </div>

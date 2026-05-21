@@ -537,38 +537,21 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="flex justify-center">
             {[
               {
-                icon: FaAward,
-                title: 'Excellence in Industrial Catering',
-                organization: 'Nigerian Hospitality Association'
-              },
-              {
                 icon: FaStar,
-                title: 'Food Safety Excellence Award',
-                organization: 'HACCP International'
-              },
-              {
-                icon: FaAward,
-                title: 'Best Corporate Catering Service',
-                organization: 'Lagos Business Awards'
-              },
-              {
-                icon: FaStar,
-                title: 'Innovation in Facilities Management',
-                organization: 'Nigerian Facilities Management Council'
+                title: 'Safety Excellence Award'
               }
             ].map((award, index) => (
               <div
                 key={index}
-                className="text-center p-8 bg-white rounded-2xl hover:bg-orange-50 transition-all duration-500 shadow-lg hover:shadow-xl border border-gray-100 hover:border-orange-200"
+                className="max-w-md w-full text-center p-8 bg-white rounded-2xl hover:bg-orange-50 transition-all duration-500 shadow-lg hover:shadow-xl border border-gray-100 hover:border-orange-200"
               >
                 <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-5 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-lg">
                   <award.icon className="text-white text-3xl" />
                 </div>
-                <h3 className="text-xl font-light text-gray-900 mb-3 tracking-wide">{award.title}</h3>
-                <p className="text-orange-600 font-medium text-base">{award.organization}</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{award.title}</h3>
               </div>
             ))}
           </div>

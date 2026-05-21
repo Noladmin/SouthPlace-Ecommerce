@@ -10,28 +10,10 @@ export default function Awards() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const awards = [
     {
-      icon: FaTrophy,
-      title: 'Excellence in Industrial Catering',
-      organization: 'Nigerian Hospitality Association',
-      description: 'Recognized for outstanding service delivery in industrial catering across oil & gas facilities.'
-    },
-    {
       icon: FaMedal,
-      title: 'Food Safety Excellence Award',
-      organization: 'HACCP International',
+      title: 'Safety Excellence Award',
+      organization: '',
       description: 'Awarded for maintaining the highest standards in food safety and hygiene practices.'
-    },
-    {
-      icon: FaCertificate,
-      title: 'Best Corporate Catering Service',
-      organization: 'Lagos Business Awards',
-      description: 'Recognized as the leading corporate catering service provider in Lagos State.'
-    },
-    {
-      icon: FaAward,
-      title: 'Innovation in Facilities Management',
-      organization: 'Nigerian Facilities Management Council',
-      description: 'Awarded for innovative approaches to facilities management and operational efficiency.'
     }
   ];
 
@@ -67,11 +49,6 @@ export default function Awards() {
   ];
 
   const certifications = [
-    {
-      title: 'HACCP Certified',
-      description: 'Hazard Analysis and Critical Control Points certification for food safety management.',
-      icon: FaCertificate
-    },
     {
       title: 'ISO 22000:2018',
       description: 'Food safety management systems certification ensuring international standards.',
@@ -139,7 +116,7 @@ export default function Awards() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16">
+          <div className="flex justify-center mt-16">
             {awards.map((award, index) => (
               <motion.div
                 key={index}
@@ -147,7 +124,7 @@ export default function Awards() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-gradient-to-br from-orange-50 to-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-orange-100"
+                className="max-w-2xl w-full bg-gradient-to-br from-orange-50 to-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-orange-100"
               >
                 <div className="flex items-start space-x-6">
                   <div className="bg-orange-500 p-4 rounded-full flex-shrink-0">
@@ -155,7 +132,9 @@ export default function Awards() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-3">{award.title}</h3>
-                    <p className="text-orange-600 font-semibold mb-3">{award.organization}</p>
+                    {award.organization && (
+                      <p className="text-orange-600 font-semibold mb-3">{award.organization}</p>
+                    )}
                     <p className="text-gray-600 leading-relaxed">{award.description}</p>
                   </div>
                 </div>
@@ -188,56 +167,19 @@ export default function Awards() {
           </motion.div>
 
           {/* Professional Gallery Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Award 1 - Excellence in Industrial Catering */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Award 1 - Food Safety Excellence */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
-              className="lg:col-span-2 relative group overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500"
-            >
-              <div className="relative h-96 lg:h-[28rem]">
-                <Image
-                  src="/images/Award1.webp"
-                  alt={awards[0].title}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30 group-hover:from-black/85 group-hover:via-black/60 group-hover:to-black/40 transition-all duration-500"></div>
-                
-                {/* Hover Overlay Content */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-6 group-hover:translate-y-0">
-                  <div className="text-center text-white p-8">
-                    <div className="bg-white/10 backdrop-blur-md rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 border border-white/20">
-                      <FaTrophy className="text-white text-4xl" />
-                    </div>
-                    <h3 className="text-3xl font-bold mb-3 text-white">{awards[0].title}</h3>
-                    <p className="text-orange-300 font-semibold mb-4 text-lg">{awards[0].organization}</p>
-                    <p className="text-gray-100 text-base leading-relaxed max-w-md mx-auto">{awards[0].description}</p>
-                  </div>
-                </div>
-
-                {/* Bottom Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white group-hover:opacity-0 transition-opacity duration-300 bg-gradient-to-t from-black/60 to-transparent">
-                  <h3 className="text-xl font-bold mb-1">{awards[0].title}</h3>
-                  <p className="text-orange-300 font-semibold text-sm">{awards[0].organization}</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Award 2 - Food Safety Excellence */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="lg:col-span-2 relative group overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500"
+              className="relative group overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500"
             >
               <div className="relative h-96 lg:h-[28rem]">
                 <Image
                   src="/images/award3.webp"
-                  alt={awards[1].title}
+                  alt={awards[0].title}
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
@@ -249,16 +191,20 @@ export default function Awards() {
                     <div className="bg-white/10 backdrop-blur-md rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 border border-white/20">
                       <FaMedal className="text-white text-4xl" />
                     </div>
-                    <h3 className="text-3xl font-bold mb-3 text-white">{awards[1].title}</h3>
-                    <p className="text-orange-300 font-semibold mb-4 text-lg">{awards[1].organization}</p>
-                    <p className="text-gray-100 text-base leading-relaxed max-w-md mx-auto">{awards[1].description}</p>
+                    <h3 className="text-3xl font-bold mb-3 text-white">{awards[0].title}</h3>
+                    {awards[0].organization && (
+                      <p className="text-orange-300 font-semibold mb-4 text-lg">{awards[0].organization}</p>
+                    )}
+                    <p className="text-gray-100 text-base leading-relaxed max-w-md mx-auto">{awards[0].description}</p>
                   </div>
                 </div>
 
                 {/* Bottom Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white group-hover:opacity-0 transition-opacity duration-300 bg-gradient-to-t from-black/60 to-transparent">
-                  <h3 className="text-xl font-bold mb-1">{awards[1].title}</h3>
-                  <p className="text-orange-300 font-semibold text-sm">{awards[1].organization}</p>
+                  <h3 className="text-xl font-bold mb-1">{awards[0].title}</h3>
+                  {awards[0].organization && (
+                    <p className="text-orange-300 font-semibold text-sm">{awards[0].organization}</p>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -267,9 +213,9 @@ export default function Awards() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
-              className="lg:col-span-2 relative group overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500"
+              className="relative group overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500"
             >
               <div className="relative h-96 lg:h-[28rem]">
                 <Image
@@ -304,9 +250,9 @@ export default function Awards() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
               viewport={{ once: true }}
-              className="lg:col-span-2 relative group overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500"
+              className="relative group overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500"
             >
               <div className="relative h-96 lg:h-[28rem]">
                 <Image
@@ -460,7 +406,7 @@ export default function Awards() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {certifications.map((cert, index) => (
               <motion.div
                 key={index}
