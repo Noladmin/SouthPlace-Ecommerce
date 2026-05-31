@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "@/lib/motion"
-import { Eye, EyeOff, Lock, Mail, Shield, ArrowRight, KeyRound } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail, Shield, ArrowRight, KeyRound, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -42,6 +42,7 @@ export default function AdminLoginPage() {
   const [authView, setAuthView] = useState<"login" | "forgot">("login")
   const [userEmail, setUserEmail] = useState("")
   const [resetCodeSent, setResetCodeSent] = useState(false)
+  const [resetSuccess, setResetSuccess] = useState(false)
   const [forgotPasswordForm, setForgotPasswordForm] = useState<ForgotPasswordForm>({
     email: "",
     otp: "",
@@ -330,23 +331,10 @@ export default function AdminLoginPage() {
         throw new Error(result.error || "Failed to reset password")
       }
 
-      setAuthView("login")
-      setResetCodeSent(false)
-      setShowResetPassword(false)
-      setShowResetConfirmPassword(false)
-      setLoginForm({
-        email: forgotPasswordForm.email,
-        password: "",
-      })
-      setForgotPasswordForm({
-        email: forgotPasswordForm.email,
-        otp: "",
-        password: "",
-        confirmPassword: "",
-      })
+      setResetSuccess(true)
       toast({
         title: "Password reset complete",
-        description: "Sign in with your new password to continue.",
+        description: "Please sign in with your new password to continue.",
       })
     } catch (error: any) {
       toast({
@@ -389,20 +377,59 @@ export default function AdminLoginPage() {
         <Card className="shadow-2xl border-0 rounded-3xl overflow-hidden backdrop-blur-sm bg-white/90">
           <CardHeader className="text-center pb-6 pt-8 px-8">
             <CardTitle className="text-2xl font-bold text-gray-900">
-              {showOTP ? "Verify Your Identity" : authView === "forgot" ? "Reset Password" : "Welcome Back"}
+              {resetSuccess
+                ? "Password Reset Successful"
+                : showOTP
+                  ? "Verify Your Identity"
+                  : authView === "forgot"
+                    ? "Reset Password"
+                    : "Welcome Back"}
             </CardTitle>
             <CardDescription className="text-base mt-2">
-              {showOTP
-                ? "Please verify your identity to continue"
-                : authView === "forgot"
-                  ? "Request a reset code and choose a new admin password"
-                  : "Sign in to access the admin dashboard"
+              {resetSuccess
+                ? "Your new password is now active"
+                : showOTP
+                  ? "Please verify your identity to continue"
+                  : authView === "forgot"
+                    ? "Request a reset code and choose a new admin password"
+                    : "Sign in to access the admin dashboard"
               }
             </CardDescription>
           </CardHeader>
 
           <CardContent className="px-8 pb-8">
-            {showOTP ? (
+            {resetSuccess ? (
+              <div className="space-y-6 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 text-orange-600 animate-bounce">
+                  <CheckCircle2 className="h-10 w-10" />
+                </div>
+                <p className="text-sm text-gray-600">
+                  Your administrator password has been successfully reset. You can now securely sign in to your account.
+                </p>
+                <Button
+                  onClick={() => {
+                    setResetSuccess(false)
+                    setAuthView("login")
+                    setResetCodeSent(false)
+                    setShowResetPassword(false)
+                    setShowResetConfirmPassword(false)
+                    setLoginForm({
+                      email: forgotPasswordForm.email,
+                      password: "",
+                    })
+                    setForgotPasswordForm({
+                      email: forgotPasswordForm.email,
+                      otp: "",
+                      password: "",
+                      confirmPassword: "",
+                    })
+                  }}
+                  className="w-full h-12 bg-orange-600 hover:bg-orange-500 text-black rounded-xl font-medium shadow-lg shadow-orange-600/20 transition-all hover:shadow-xl hover:shadow-orange-600/30"
+                >
+                  Proceed to Sign In
+                </Button>
+              </div>
+            ) : showOTP ? (
               // OTP Form
               <form onSubmit={handleOTPVerification} className="space-y-5">
                 <div className="space-y-2">

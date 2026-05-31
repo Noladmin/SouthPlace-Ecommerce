@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff, Lock, Shield } from "lucide-react"
+import { Eye, EyeOff, Lock, Shield, CheckCircle2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,7 @@ export default function AdminChangePasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
 
   useEffect(() => {
     const check = async () => {
@@ -67,7 +68,7 @@ export default function AdminChangePasswordPage() {
         title: "Password updated",
         description: "You can now continue to the dashboard.",
       })
-      router.push("/admin/dashboard")
+      setIsSuccess(true)
     } catch (error: any) {
       toast({
         title: "Update failed",
@@ -83,6 +84,35 @@ export default function AdminChangePasswordPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-orange-600" />
+      </div>
+    )
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-neutral-50 via-white to-orange-50 p-4">
+        <Card className="w-full max-w-lg border-0 shadow-2xl rounded-3xl overflow-hidden backdrop-blur-sm bg-white/90">
+          <CardHeader className="text-center pb-6 pt-8 px-8">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-orange-50 text-orange-600 animate-bounce">
+              <CheckCircle2 className="h-12 w-12" />
+            </div>
+            <CardTitle className="text-3xl font-extrabold text-gray-900 tracking-tight">Password Updated!</CardTitle>
+            <CardDescription className="text-base mt-3 text-gray-600">
+              Your security settings have been updated successfully. Your new password is now active.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-8 pb-8 text-center">
+            <p className="text-sm text-gray-500 mb-6">
+              Please click the button below to securely enter your administration dashboard.
+            </p>
+            <Button 
+              onClick={() => router.push("/admin/dashboard")} 
+              className="w-full h-12 bg-orange-600 hover:bg-orange-500 text-black rounded-xl font-semibold shadow-lg shadow-orange-600/20 hover:shadow-xl hover:shadow-orange-600/30 transition-all duration-250 flex items-center justify-center gap-2"
+            >
+              Proceed to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
